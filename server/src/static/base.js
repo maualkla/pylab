@@ -1,3 +1,5 @@
+/// stage variables
+let errors = 0;
 
 // Function to get the client navigator version.
 navigator.sayswho= (function(){
@@ -17,5 +19,29 @@ navigator.sayswho= (function(){
     return M.join(' ');
 })();
 
-let clientVersion = navigator.sayswho
-console.log(clientVersion); // outputs: `Chrome 62`
+// function to get ip
+function getIp(){
+    let xhr = new XMLHttpRequest();
+    let url = "https://api.ipify.org/?format=json";
+    xhr.open("GET", url);
+    xhr.onreadystatechange = function () {
+        try
+        {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                //console.log(" response ok ");
+                console.log(JSON.parse(xhr.responseText)["ip"]);
+            }else{
+                //console.log("loading...");
+            }
+        }
+        catch(e)
+        {
+            errors++;
+        }
+    };
+    xhr.send();
+}
+
+// Actions
+console.log(navigator.sayswho); // outputs: `Chrome 62`
+getIp(); // outputs: XXX.XXX.XXX.XXX clients IP
