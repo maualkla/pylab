@@ -1,0 +1,9 @@
+h1{
+    border: solid 0px gray;
+    border-radius: 10px;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+    font-size: 500%;
+    background-color:beige;
+    margin: 2% 1% 0 1%;
+    padding: 100px;
+}

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %} pylab 🔥 {% endblock %}</title>
+        {% block styles %}
+        <link rel="stylesheet" href="../static/base.css">
+        {% endblock %}
+        <link rel="icon" type="" href="../static/logo.ico">
+    </head>
+    <body>
+        <div class="_view">
+            {% block content %}
+                <h1> Welcome to the pylab </h1>
+            {% endblock %}
+        </div>
+
+        {% block scripts %}
+        <script src="../static/base.js"></script>
+        {% endblock %}
+    </body>
+</html>
