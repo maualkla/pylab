@@ -1,6 +1,11 @@
 from flask import Flask, render_template, request, make_response, redirect
+import os, requests
+from config import Config
 
 app = Flask(__name__)
+
+## Setup env vars
+app.config.from_object(Config)
 
 @app.route('/')
 def index():
@@ -15,11 +20,18 @@ def lab():
     try:
         from datetime import datetime
         _now = datetime.now()
-        _now = _now.strftime("%d%m%YH%M%S")
+        ## get countries list.
+        _url = str(app.config['COUNTRIES_URL']) + '/countries'
+        _header = { str(app.config['COUNTRIES_NAME']) : str(app.config['COUNTRIES_VAL'])}
+        _response = requests.get(_url, headers=_header)
+        print(_response)
+        print(_response.json())
+        _countries = _response.json()
         context = {
-            'current_date_time' : _now
+            '_current_date_time' : _now,
+            '_countries': _countries
         }
-        return render_template('lab.html')
+        return render_template('lab.html', **context)
     except Exception as e:
         return {"status": "An error Occurred", "error": str(e)}
 
