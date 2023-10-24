@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 ## Setup env vars
 app.config.from_object(Config)
-_services = True
+_services = app.config['CONF_SERVICES_SWITCH']
 
 @app.route('/')
 def index():
