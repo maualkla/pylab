@@ -11,3 +11,10 @@ h1{
     margin: 50px 50px 100px 50px;
     font-size: 50px;
 }
+._console{
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 90%;
+    background-color: black;
+    border-radius: 10px;
+    color: whitesmoke;
+}

@@ -1,5 +1,10 @@
 /// stage variables
 let errors = 0;
+let userIp = "0.0.0.0";
+
+/// Triggers
+if(document.getElementById('_get_ip_details')) document.getElementById('_get_ip_details').addEventListener('click', function (){ getIpDetails(); });
+
 
 // Function to get the client navigator version.
 navigator.sayswho= (function(){
@@ -29,6 +34,7 @@ function getIp(){
         {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 //console.log(" response ok ");
+                userIp = JSON.parse(xhr.responseText)["ip"];
                 console.log(JSON.parse(xhr.responseText)["ip"]);
             }else{
                 //console.log("loading...");
@@ -40,6 +46,31 @@ function getIp(){
         }
     };
     xhr.send();
+}
+
+// Get Ip details: 
+function getIpDetails(){
+    let xhr = new XMLHttpRequest();
+    let url = "/info";
+    let payload = {'_ip': userIp}
+    xhr.open("POST", url);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function () {
+        try
+        {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log(" response ok ");
+                console.log(JSON.parse(xhr.responseText));
+            }else{
+                console.log("loading...");
+            }
+        }
+        catch(e)
+        {
+            errors++;
+        }
+    };
+    xhr.send(JSON.stringify(payload));
 }
 
 // Actions
