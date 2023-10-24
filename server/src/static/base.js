@@ -61,6 +61,13 @@ function getIpDetails(){
             if (xhr.readyState === 4 && xhr.status === 200) {
                 console.log(" response ok ");
                 console.log(JSON.parse(xhr.responseText));
+                let _console = document.getElementsByClassName('_console')[0];
+                _console.innerHTML += "<p>"+"IP: " + JSON.parse(xhr.responseText)['ip'] + "</p>";
+                _console.innerHTML += "<p>"+"Coordinates: " + JSON.parse(xhr.responseText)['loc'] + "</p>";
+                _console.innerHTML += "<p>"+"Country Code: " + JSON.parse(xhr.responseText)['country'] + "</p>";
+                _console.innerHTML += "<p>"+"City: " + JSON.parse(xhr.responseText)['city'] + "</p>";
+                _console.innerHTML += "<p>"+"Postal Code: " + JSON.parse(xhr.responseText)['postal'] + "</p>";
+                _console.innerHTML += "<p>"+"Time Zone: " + JSON.parse(xhr.responseText)['timezone'] + "</p>";
             }else{
                 console.log("loading...");
             }

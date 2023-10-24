@@ -8,13 +8,17 @@ h1{
     padding: 100px;
 }
 ._input{
-    margin: 50px 50px 100px 50px;
+    margin: 50px 50px 50px 50px;
     font-size: 50px;
 }
 ._console{
+    margin: 2% 1% 0 1%;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 90%;
+    font-size: 110%;
     background-color: black;
     border-radius: 10px;
     color: whitesmoke;
+    padding: 30px;
+    height: 300px;
+    overflow: scroll;
 }
