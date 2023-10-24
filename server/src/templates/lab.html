@@ -3,9 +3,15 @@
     <h1>{{ _current_date_time }}</h1>
     <div class="_input">
         <select id="list">
-            {% for _x in _countries %}
-                <option value='{{_x["iso2"]}}'>{{_x["name"]}}</option>
-            {% endfor %}
+            {% if _countries %}
+                {% for _x in _countries %}
+                    <option value='{{_x["iso2"]}}'>{{_x["name"]}}</option>
+                {% endfor %}
+            {% else %}
+                <option value="DE">Deutschland</option>
+                <option value="MX">Mexico</option>
+                <option value="US">United States of America</option>
+            {% endif %}
        </select>
        <input type="button" id="_get_ip_details" value="Get Details: ">
     </div>  

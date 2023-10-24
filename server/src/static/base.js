@@ -1,6 +1,7 @@
 /// stage variables
 let errors = 0;
 let userIp = "0.0.0.0";
+let clientVersion = '';
 
 /// Triggers
 if(document.getElementById('_get_ip_details')) document.getElementById('_get_ip_details').addEventListener('click', function (){ getIpDetails(); });
@@ -13,14 +14,19 @@ navigator.sayswho= (function(){
     var M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
     if(/trident/i.test(M[1])){
         tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+        clientVersion = 'IE '+(tem[1] || '');
         return 'IE '+(tem[1] || '');
     }
     if(M[1]=== 'Chrome'){
         tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
-        if(tem!= null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+        if(tem!= null) {
+            clientVersion = tem.slice(1).join(' ').replace('OPR', 'Opera');
+            return tem.slice(1).join(' ').replace('OPR', 'Opera');
+        }
     }
     M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
     if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    clientVersion = M.join(' ');
     return M.join(' ');
 })();
 
@@ -35,7 +41,7 @@ function getIp(){
             if (xhr.readyState === 4 && xhr.status === 200) {
                 //console.log(" response ok ");
                 userIp = JSON.parse(xhr.responseText)["ip"];
-                console.log(JSON.parse(xhr.responseText)["ip"]);
+                //console.log(JSON.parse(xhr.responseText)["ip"]);
             }else{
                 //console.log("loading...");
             }
@@ -59,9 +65,10 @@ function getIpDetails(){
         try
         {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                console.log(" response ok ");
+                //console.log(" response ok ");
                 console.log(JSON.parse(xhr.responseText));
                 let _console = document.getElementsByClassName('_console')[0];
+                _console.innerHTML = "<p>"+"Browser Version: " + clientVersion + "</p>";
                 _console.innerHTML += "<p>"+"IP: " + JSON.parse(xhr.responseText)['ip'] + "</p>";
                 _console.innerHTML += "<p>"+"Coordinates: " + JSON.parse(xhr.responseText)['loc'] + "</p>";
                 _console.innerHTML += "<p>"+"Country Code: " + JSON.parse(xhr.responseText)['country'] + "</p>";
@@ -69,7 +76,7 @@ function getIpDetails(){
                 _console.innerHTML += "<p>"+"Postal Code: " + JSON.parse(xhr.responseText)['postal'] + "</p>";
                 _console.innerHTML += "<p>"+"Time Zone: " + JSON.parse(xhr.responseText)['timezone'] + "</p>";
             }else{
-                console.log("loading...");
+                //console.log("loading...");
             }
         }
         catch(e)

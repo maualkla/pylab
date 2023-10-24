@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template, request, make_response, redirect
-import os, requests
+import os
+import requests
 from config import Config
 
 app = Flask(__name__)
