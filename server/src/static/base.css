@@ -24,19 +24,25 @@ h1{
 }
 
 ._color_picker{
-
+    width: 210px;
+    border: solid 4px black;
+    display: flex;
+    background-color: white;
+    border-radius: 5px;
 }
 
     #_color_text{
-        border: solid 4px black;
+        /*border: solid 4px white; */
+        padding: 2px;
         background: white;
+        border: none;
         color: black;
         height: 20px;
-        padding: 0;
         font-size: 15px;
     }
     #_color_text:active{
-        border: solid 2px #000 !important;
+        /*border: solid 2px #000 !important;*/
+        border: none;
     }
     #_color_input{
         border: none;

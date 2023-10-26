@@ -103,17 +103,17 @@ function validateHex(_value){
 function changeColorPickerValue(_value){
     if (validateHex(_value)){   
         document.getElementById('_color_input').value = _value;
-        document.getElementById('_color_text').style.borderColor = _value;
+        document.getElementsByClassName('_color_picker')[0].style.borderColor = _value;
     }else{
         document.getElementById('_color_text').value = "#ffffff";
-        document.getElementById('_color_text').style.borderColor = "#ffffff";
+        document.getElementsByClassName('_color_picker')[0].style.borderColor = "#ffffff";
     }
 }
 
 // function change color text value
 function changeColorTextValue(_value){
     document.getElementById('_color_text').value = _value;
-    document.getElementById('_color_text').style.borderColor = _value;
+    document.getElementsByClassName('_color_picker')[0].style.borderColor = _value;
 }
 
 // Actions
