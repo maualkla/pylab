@@ -5,7 +5,8 @@ let clientVersion = '';
 
 /// Triggers
 if(document.getElementById('_get_ip_details')) document.getElementById('_get_ip_details').addEventListener('click', function (){ getIpDetails(); });
-
+if(document.getElementById('_color_text')) document.getElementById('_color_text').addEventListener('change', function (){ changeColorPickerValue(document.getElementById('_color_text').value); });
+if(document.getElementById('_color_input')) document.getElementById('_color_input').addEventListener('change', function (){ changeColorTextValue(document.getElementById('_color_input').value); });
 
 // Function to get the client navigator version.
 navigator.sayswho= (function(){
@@ -85,6 +86,34 @@ function getIpDetails(){
         }
     };
     xhr.send(JSON.stringify(payload));
+}
+
+// function validate value hex
+function validateHex(_value){
+    console.log("entramos a validar-");
+    console.log(_value)
+    let regex = new RegExp(/^#([A-Fa-f0-9]{6})$/);
+    if (_value == null) {
+        return "false";
+    }
+    return (regex.test(_value) == true) ? true : false;
+}
+
+// function change color picker value.
+function changeColorPickerValue(_value){
+    if (validateHex(_value)){   
+        document.getElementById('_color_input').value = _value;
+        document.getElementById('_color_text').style.borderColor = _value;
+    }else{
+        document.getElementById('_color_text').value = "#ffffff";
+        document.getElementById('_color_text').style.borderColor = "#ffffff";
+    }
+}
+
+// function change color text value
+function changeColorTextValue(_value){
+    document.getElementById('_color_text').value = _value;
+    document.getElementById('_color_text').style.borderColor = _value;
 }
 
 // Actions

@@ -22,3 +22,24 @@ h1{
     height: 300px;
     overflow: scroll;
 }
+
+._color_picker{
+
+}
+
+    #_color_text{
+        border: solid 4px black;
+        background: white;
+        color: black;
+        height: 20px;
+        padding: 0;
+        font-size: 15px;
+    }
+    #_color_text:active{
+        border: solid 2px #000 !important;
+    }
+    #_color_input{
+        border: none;
+        padding: 0;
+        height: 24px;
+    }
