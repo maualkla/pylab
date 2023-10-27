@@ -21,6 +21,7 @@ def index():
 def lab():
     try:
         from datetime import datetime
+        _farben = ['#00C300', '#FFFFFF', '#000000']
         _now = datetime.now()
         if _services:
             ## get countries list.
@@ -32,7 +33,8 @@ def lab():
             _countries = {}
         context = {
             '_current_date_time' : _now,
-            '_countries': _countries
+            '_countries': _countries, 
+            '_farbens': _farben
         }
         return render_template('lab.html', **context)
     except Exception as e:

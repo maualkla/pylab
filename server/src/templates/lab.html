@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
     <h1>{{ _current_date_time }}</h1>
-    <div class="_input">
+    <div class="_input" style="background:{{_farbens[0]}};color:{{_farbens[1]}};">
         <select id="list">
             {% if _countries %}
                 {% for _x in _countries %}
