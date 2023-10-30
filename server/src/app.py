@@ -45,17 +45,13 @@ def ip_info():
     try:
         if request.method == 'POST' and request.json['_ip']:
             if _services:
-                print(" entramos a get ip ")
+                print(" (!) -> Entro a ip_info POST - Services Activated.")
                 _url = str(app.config['CONF_API_LOCATION_URL'])+'/'+str(request.json['_ip'])+'?token='+str(app.config['CONF_API_LOCATION'])
                 _response = requests.get(_url)
                 if str(_response.status_code) == str(200):
-                    print(_response)
                     _response_json = _response.json()
-                    print(_response_json)
-                    print(_response_json['ip'])
                     return jsonify(_response_json), 200
                 else:
-                    print("toca retornar 300")
                     return  jsonify({'alert': 'service unavailable. Try later again.'}), 300
             else:
                 _obj = {'ip': '77.4.67.60', 'hostname': 'dynamic-077-004-067-060.77.4.pool.telefonica.de', 'city': 'Munich', 'region': 'Bavaria', 'country': 'DE', 'loc': '48.1374,11.5755', 'postal': '80331', 'timezone': 'Europe/Berlin', 'asn': {'asn': 'AS6805', 'name': 'Telefonica Germany GmbH & Co.OHG', 'domain': 'telefonica.de', 'route': '77.0.0.0/12', 'type': 'isp'}, 'company': {'name': 'Telefonica O2 Germany GmbH & Co. OHG', 'domain': 'telefonica.com', 'type': 'isp'}, 'privacy': {'vpn': False, 'proxy': False, 'tor': False, 'relay': False, 'hosting': False, 'service': ''}, 'abuse': {'address': 'Telefonica Germany GmbH & Co. OHG, Georg-Brauchle-Ring 50, 80992 Muenchen, DE', 'country': 'DE', 'email': 'abuse.de@telefonica.com', 'name': 'mediaWays Hostmaster', 'network': '77.4.0.0/16', 'phone': '+498924420'}, 'domains': {'page': 0, 'total': 0, 'domains': []}}
