@@ -1,0 +1,113 @@
+/* ##########################
+### TOGGLE SWITCH STYLING ###
+############################# */
+.preferences {
+    padding: 1em;
+    margin-block: 2em;
+    border-radius: 8px;
+    border-color: darkgrey;
+  
+    & .legend {
+      padding: 0.5em 1em;
+      background-color: lightcoral;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+  }
+  
+  .switch-container {
+    padding: 1em;
+    width: min(14em, 100%);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 1em;
+    border-radius: 8px;
+    cursor: pointer;
+  
+    &:hover,
+    &:has(input:focus),
+    &:has(input:focus-visible) {
+      outline: 2px solid blue;
+    }
+  }
+  
+  .label {
+    margin-right: 1em;
+  }
+  
+  .toggle-container {
+    --_switch-height: 24px;
+    --_switch-width: 48px;
+  
+    position: relative;
+    margin-right: 0.5em;
+    height: var(--_switch-height);
+    width: var(--_switch-width);
+  
+    /* Visually hide checkbox but preserve accessibility. */
+    & input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  }
+  
+  /* The slider */
+  .slider {
+    --outline-width: 1px;
+  
+    position: absolute;
+    inset: 0;
+  
+    background-color: gray;
+    border-radius: 9999px;
+    outline: 1px solid rgb(220, 52, 52);
+    cursor: pointer;
+    transition: background-color var(--transition-duration-timing-from);
+  
+    .toggle-container input:checked + & {
+      background-color: green;
+      filter: brightness(130%);
+      transition: background-color var(--transition-duration-timing-to);
+    }
+  
+    &::before {
+      --_ratio: 80%;
+      --_offset: 2px;
+  
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: var(--_offset);
+      right: unset;
+      translate: 0 -50%;
+      height: var(--_ratio);
+      aspect-ratio: 1 / 1;
+      background-color: rgba(252, 216, 216, 0.85);
+      border-radius: 50%;
+      transition: translate var(--transition-duration-timing-from);
+    }
+  
+    .toggle-container input:checked + &::before {
+      left: 0;
+      translate: calc((var(--_switch-width) - 100%) - var(--_offset)) -50%;
+      transition: translate var(--transition-duration-timing-to);
+    }
+  }
+  
+  .switch-status {
+    color: whitesmoke;
+    opacity: 0.85;
+  
+    .toggle-container:has(#switch[checked]) + & {
+      opacity: 1;
+      font-weight: 500;
+    }
+  }

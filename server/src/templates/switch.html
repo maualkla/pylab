@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <title>Sample head</title>
+        <link rel="stylesheet" href="../static/switch.css">
+    </head>
+    <body>
+        <main>
+            <div class="wrapper">
+              <h1>Toggle Switch widget</h1>
+              <fieldset class="preferences">
+                <legend class="legend">Preferences</legend>
+                <label for="switch" title="Allow a single accordion panel to be expanded at a time" class="switch-container">
+                  <span id="switch-label" class="label">Solo mode</span>
+                  <div class="toggle-container">
+                    <input id="switch" type="checkbox" role="switch" aria-labelledby="switch-label" />
+                    <span class="slider"></span>
+                  </div>
+                  <span id="switch-status" class="toggle-status" aria-hidden="true">OFF</span>
+                </label>
+              </fieldset>
+            </div>
+          </main>
+          <script src="../static/switch.js"></script>
+    </body>
+</html>

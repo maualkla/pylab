@@ -17,6 +17,13 @@ def index():
     }
     return render_template('index.html', **context)
 
+@app.route('/switch')
+def switch():
+    try:
+        return render_template('switch.html')
+    except Exception as e:
+        return {"status": "An error Occurred", "error": str(e)}
+
 @app.route('/lab')
 def lab():
     try:
