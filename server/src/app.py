@@ -2,6 +2,8 @@ from flask import Flask, jsonify, render_template, request, make_response, redir
 import os
 import requests
 from config import Config
+from io import StringIO
+import csv
 
 app = Flask(__name__)
 
@@ -68,6 +70,25 @@ def ip_info():
             return  jsonify({'alert': 'unouthorized'}), 400
     except Exception as e:
         return {"status": "An error Occurred", "error": str(e)}
+    
+@app.route('/csv', methods=['GET'])
+def csv_return():
+    data = [
+        ['Header1', 'Header2', 'Header3'],
+        ['Value1', 'Value2', 'Value3']
+        # ... more rows if needed
+    ] 
+
+    si = StringIO()
+    cw = csv.writer(si)
+
+    for row in data:
+        cw.writerow(row)
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=my_file.csv"
+    output.headers["Content-type"] = "text/csv"
+
+    return output
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
