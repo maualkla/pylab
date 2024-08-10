@@ -90,5 +90,63 @@ def csv_return():
 
     return output
 
+@app.route('/auth', methods=['GET'])
+def auth(time_step=30, digits=6):
+    try:
+        if 'secret_key' in request.args: 
+            import time
+            import hashlib
+            import hmac
+            import base64
+            """
+            Generates a TOTP code given a secret key.
+
+            Args:
+                secret_key: The shared secret key (base32 encoded)
+                time_step: The time step in seconds (default 30)
+                digits: The number of digits in the TOTP code (default 6)
+
+            Returns:
+                The generated TOTP code as a string.
+            """
+
+            # Get the current time in Unix seconds
+            current_time = int(time.time())
+
+            # Calculate the time counter (number of time steps since epoch)
+            time_counter = current_time // time_step
+
+            # Convert the time counter to a byte string (big-endian)
+            time_counter_bytes = time_counter.to_bytes(8, 'big')
+
+            # Decode the secret key from base32 to bytes
+            secret_key_bytes = base64.b32decode(request.args.get('secret_key'))
+
+            # Calculate the HMAC-SHA1 hash
+            hmac_hash = hmac.new(secret_key_bytes, time_counter_bytes, hashlib.sha1).digest()
+
+            # Dynamic truncation (extract 4 bytes from the hash based on the last 4 bits)
+            offset = hmac_hash[-1] & 0xf
+            truncated_hash = hmac_hash[offset:offset + 4]
+
+            # Convert the truncated hash to an integer
+            code_int = int.from_bytes(truncated_hash, 'big')
+
+            # Extract the desired number of digits
+            code = str(code_int % 10**digits)
+
+            # Pad with leading zeros if necessary
+            code = code.zfill(digits)
+
+            return jsonify({"code": code}), 200
+        else:
+            return jsonify({"status": "Missing required parameter"}), 403
+
+    except Exception as e:
+        print("(!) Exception in /auth")
+        print(e)
+        return jsonify({"status": "An error Occurred", "error": str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
