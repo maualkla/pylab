@@ -90,6 +90,43 @@ def csv_return():
 
     return output
 
+
+@app.route('/ml', methods=['GET'])
+def ml_test():
+    try:
+        ## 1 import required libraries
+        import pandas as pd 
+        from sklearn.linear_model import LogisticRegression
+
+        ## loading the dataset and displaying the first few rows
+        iris_data = pd.read_csv('iris.csv')
+        iris_data.head()
+
+        ## split the data into features (x) and labels (y)
+        x = iris_data.drop(columns=['variety'])
+        y = iris_data['variety']
+
+        ## create model 
+        model = LogisticRegression()
+
+        ## train model 
+        model.fit(x.values, y)
+
+        ## predict using the trained model 
+        predictions = model.predict([[4.6, 3.5, 1.5, 0.2]])
+
+        ## print and return the predictions
+        predictions_text = "Prediction: "+str(predictions[0])
+        print(predictions_text)
+        return {'prediction': predictions[0]} 
+        
+    except Exception as e:
+        print("(!) Exception in /auth")
+        print(e)
+        return jsonify({"status": "An error Occurred", "error": str(e)}), 500
+
+
+
 @app.route('/auth', methods=['GET'])
 def auth(time_step=30, digits=6):
     try:
