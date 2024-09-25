@@ -112,13 +112,21 @@ def ml_test():
         ## train model 
         model.fit(x.values, y)
 
-        ## predict using the trained model 
-        predictions = model.predict([[4.6, 3.5, 1.5, 0.2]])
+        params = True if 'slength' in request.args and 'swidth' in request.args and 'plength' in request.args and 'pwidth' in request.args else False
+
+        # Extract parameters from the request, converting to integers
+        slength = float(request.args.get('slength')) if request.args.get('slength') else 4.6
+        swidth = float(request.args.get('swidth')) if request.args.get('swidth') else 3.5
+        plength = float(request.args.get('plength')) if request.args.get('plength') else 1.5
+        pwidth = float(request.args.get('pwidth')) if request.args.get('pwidth') else 0.2
+
+        # Use the extracted parameters in your prediction
+        predictions = model.predict([[slength, swidth, plength, pwidth]])
 
         ## print and return the predictions
         predictions_text = "Prediction: "+str(predictions[0])
         print(predictions_text)
-        return {'prediction': predictions[0]} 
+        return {'prediction': predictions[0], "default": not params} 
         
     except Exception as e:
         print("(!) Exception in /auth")
