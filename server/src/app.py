@@ -91,8 +91,8 @@ def csv_return():
     return output
 
 
-@app.route('/ml', methods=['GET'])
-def ml_test():
+@app.route('/iris', methods=['GET'])
+def iris():
     try:
         ## 1 import required libraries
         import pandas as pd 
