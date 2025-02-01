@@ -1,6 +1,6 @@
 FROM python:3.7
 
-RUN pip install Flask gunicorn requests
+RUN pip install Flask gunicorn requests pandas scikit-learn
 
 COPY src/ app/
 

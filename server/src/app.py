@@ -192,6 +192,36 @@ def auth(time_step=30, digits=6):
         print(e)
         return jsonify({"status": "An error Occurred", "error": str(e)}), 500
 
+@app.route('/ollama')
+def ollama():
+    try:
+        return render_template('ollama.html')
+    except Exception as e:
+        return {"status": "An error Occurred", "error": str(e)}
+
+@app.route('/ollama_message', methods=['GET', 'POST'])
+def ollama_message():
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            message = data.get('message')
+            if not message:
+                return jsonify({'error': 'Invalid request: "message" is required.'}), 400
+            ollama_payload = {
+                "model": 'llama3.2',
+                "prompt": message,
+                "stream": False  
+            }
+            response = requests.post('http://localhost:11434/api/generate', json=ollama_payload)
+            response.raise_for_status()
+            full_resp = ""
+            response_data = response.json()
+            full_resp = response_data.get("response")
+            return jsonify({'response': full_resp})
+        
+        except Exception as e:
+            return jsonify({'error': f'An unexpected error occurred: {e}'}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
