@@ -6,9 +6,9 @@ function addMessage(sender, message) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
-    messageElement.textContent = message;
+    messageElement.innerHTML = formatMessage(message); // Usar innerHTML aquí
     chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function sendMessage() {
@@ -45,3 +45,39 @@ messageInput.addEventListener('keypress', (event) => {
         sendMessage();
     }
 });
+
+
+function formatMessage(mensaje) {
+    // Expresión regular para detectar bloques de código
+    // Busca patrones como `codigo` o `codigo`
+    const regexCodigo = /(`([\s\S]*?)`|`([\s\S]*?)`)/g;
+  
+    let resultado = mensaje;
+    let match;
+  
+    while ((match = regexCodigo.exec(mensaje)) !== null) {
+      let codigo;
+      if (match[2]) {
+        // Bloque de código con triple backticks (```)
+        codigo = match[2].trim();
+        // Reemplaza el bloque completo
+        resultado = resultado.replace(
+          match[0],
+          `<pre><code style="font-family: monospace; font-weight: bold; padding-left: 1em;">${codigo}</code></pre>`
+        );
+      } else if (match[3]) {
+        // Código en línea con un solo backtick (`)
+        codigo = match[3].trim();
+        // Reemplaza solo la parte del código
+        resultado = resultado.replace(
+          match[0],
+          `<code style="font-family: monospace; font-weight: bold;">${codigo}</code>`
+        );
+      }
+    }
+  
+    // Reemplazar saltos de línea por <br> para mantener el formato en HTML
+    resultado = resultado.replace(/\n/g, "<br>");
+  
+    return resultado;
+  }
