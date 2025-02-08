@@ -204,21 +204,42 @@ def ollama_message():
     if request.method == 'POST':
         try:
             data = request.get_json()
-            message = data.get('message')
-            if not message:
+            conversation_history = data.get('message')
+
+            if not conversation_history:
                 return jsonify({'error': 'Invalid request: "message" is required.'}), 400
-            ollama_payload = {
-                "model": 'llama3.2',
-                "prompt": message,
-                "stream": False  
-            }
-            response = requests.post('http://localhost:11434/api/generate', json=ollama_payload)
+
+            # Check if the request is for summarization
+            if conversation_history.startswith("**Summarize"):
+                # Construct the request payload for summarization
+                ollama_payload = {
+                    "model": "llama3.2",
+                    "prompt": conversation_history,
+                    "stream": False
+                }
+            else:
+                # Construct the request payload for normal chat
+                ollama_payload = {
+                    "model": "llama3.2",
+                    "prompt": conversation_history,
+                    "stream": False
+                }
+
+            # Call the Ollama API
+            response = requests.post("http://localhost:11434/api/generate", json=ollama_payload)
             response.raise_for_status()
-            full_resp = ""
-            response_data = response.json()
-            full_resp = response_data.get("response")
-            return jsonify({'response': full_resp})
+
+
+            print("(!) Sending payload to ollama")
+            print(ollama_payload)
         
+            # Accumulate the response
+            full_response = ""
+            response_data = response.json()
+            full_response = response_data.get("response")
+
+            return jsonify({'response': full_response})
+
         except Exception as e:
             return jsonify({'error': f'An unexpected error occurred: {e}'}), 500
 

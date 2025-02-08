@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Local Ollama</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/ollama.css">
     <link rel="stylesheet"
           href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
@@ -11,8 +12,7 @@
     <div class="chat-container">
         <div class="chat-header">
             <div class="header-title">
-                <h2>Local Ollama</h2>
-            </div>
+                <h2>Local Ollama</h2></div>
             <div class="toggle-container">
                 <span id="mode-label">Dark</span> <label class="switch">
                     <input type="checkbox" id="modeToggle">
@@ -21,7 +21,12 @@
             </div>
         </div>
         <div class="chat-messages" id="chatMessages">
-            </div>
+        </div>
+        <div class="message bot-message waiting-message" id="waitingMessage" style="display: none;">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
         <div class="chat-input">
             <input type="text" id="messageInput" placeholder="Enter your message...">
             <button id="sendMessageBtn">Send</button>
