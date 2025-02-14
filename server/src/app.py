@@ -230,8 +230,8 @@ def ollama_message():
             response.raise_for_status()
 
 
-            print("(!) Sending payload to ollama")
-            print(ollama_payload)
+            ##print("(!) Sending payload to ollama")
+            ##print(ollama_payload)
         
             # Accumulate the response
             full_response = ""
