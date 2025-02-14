@@ -10,6 +10,7 @@
     </head>
     <body>
         <div class="_view">
+            {% include "nav.html" %}
             {% block content %}
                 <h1> Welcome to the pylab <markup> {{ local_ip }} </markup></h1>
             {% endblock %}

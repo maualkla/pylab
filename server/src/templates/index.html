@@ -1,1 +1,41 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="../static/home.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>welcome to my pylab 🔥</h1>
+
+    <p>This is a simple example Flask application with links to different test services.</p>
+
+    <h2>Available Services:</h2>
+    <ul class="service-list">
+        <li>
+            <div class="service-item">
+                <a href="{{ url_for('iris', slength=5.1, swidth=3.5, plength=1.4, pwidth=0.2) }}" class="service-link">
+                    Iris Service (Example)
+                </a>
+                <p>Pass parameters 'slength', 'swidth', 'plength', and 'pwidth' as query parameters.</p>
+            </div>
+        </li>
+        <li>
+          <div class="service-item">
+            <a href="{{ url_for('auth', secret_key='your_secret_key') }}" class="service-link">
+                Auth Service (Example)
+            </a>
+            <p>Pass a 'secret_key' as a query parameter.</p>
+          </div>
+        </li>
+        <li>
+            <div class="service-item">
+            <a href="{{ url_for('csv_return') }}" class="service-link">
+                Download Sample CSV
+            </a>
+            </div>
+        </li>
+    </ul>
+</div>
+{% endblock %}

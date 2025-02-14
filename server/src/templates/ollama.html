@@ -1,14 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Local Ollama</title>
+{% extends 'base.html' %}
+{% block tittle %}
+Local Ollama
+{% endblock %}
+{% block styles %}
+    {{ super() }}
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/ollama.css">
     <link rel="stylesheet"
           href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-</head>
-<body>
+{% endblock %}
+    {% block content %}
     <div class="chat-container">
         <div class="chat-header">
             <div class="header-title">
@@ -33,5 +36,6 @@
         </div>
     </div>
     <script src="../static/ollama.js"></script>
+    {% endblock %}
 </body>
 </html>

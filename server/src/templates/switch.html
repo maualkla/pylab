@@ -1,9 +1,14 @@
-<html>
-    <head>
-        <title>Sample head</title>
+{% extends 'base.html' %}
+{% block tittle %}
+Sample Swittch
+{% endblock %}
+{% block styles %}
+    {{ super() }}
         <link rel="stylesheet" href="../static/switch.css">
-    </head>
-    <body>
+{% endblock %}
+
+{% block content %}
+
         <main>
             <div class="wrapper">
               <h1>Toggle Switch widget</h1>
@@ -21,5 +26,4 @@
             </div>
           </main>
           <script src="../static/switch.js"></script>
-    </body>
-</html>
+{% endblock %}
