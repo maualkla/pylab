@@ -2,7 +2,7 @@
 
 {% block styles %}
     {{ super() }}
-    <link rel="stylesheet" href="../static/home.css">
+    <!--link rel="stylesheet" href="../static/home.css"-->
 {% endblock %}
 
 {% block content %}
@@ -31,9 +31,23 @@
         </li>
         <li>
             <div class="service-item">
-            <a href="{{ url_for('csv_return') }}" class="service-link">
-                Download Sample CSV
-            </a>
+                <a href="{{ url_for('csv_return') }}" class="service-link">
+                    Download Sample CSV
+                </a>
+            </div>
+        </li>
+        <li>
+            <div class="service-item">
+                <a href="{{ url_for('hello') }}" class="service-link">
+                    Hello Service
+                </a>
+            </div>
+        </li>
+        <li>
+            <div class="service-item">
+                <a href="{{ url_for('countries') }}" class="service-link">
+                    Countries
+                </a>
             </div>
         </li>
     </ul>
