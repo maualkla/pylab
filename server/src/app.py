@@ -209,38 +209,91 @@ def ollama_message():
             if not conversation_history:
                 return jsonify({'error': 'Invalid request: "message" is required.'}), 400
 
-            # Check if the request is for summarization
-            if conversation_history.startswith("**Summarize"):
-                # Construct the request payload for summarization
-                ollama_payload = {
-                    "model": "llama3.2",
-                    "prompt": conversation_history,
-                    "stream": False
-                }
+            if _services:
+                from google import genai
+                from google.genai import types
+                
+                client = genai.Client(
+                    vertexai=True,
+                    project="adminde-tc",
+                    location="us-central1",
+                )
+                  
+                text1 = types.Part.from_text(text=conversation_history)
+
+                model = "gemini-2.0-flash-001"
+                contents = [
+                    types.Content(
+                    role="user",
+                    parts=[
+                            text1
+                        ]
+                    )
+                ]
+
+                generate_content_config = types.GenerateContentConfig(
+                    temperature = 1.3,
+                    top_p = 0.95,
+                    max_output_tokens = 857,
+                    response_modalities = ["TEXT"],
+                    safety_settings = [types.SafetySetting(
+                    category="HARM_CATEGORY_HATE_SPEECH",
+                    threshold="OFF"
+                    ),types.SafetySetting(
+                    category="HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold="OFF"
+                    ),types.SafetySetting(
+                    category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold="OFF"
+                    ),types.SafetySetting(
+                    category="HARM_CATEGORY_HARASSMENT",
+                    threshold="OFF"
+                    )],
+                )
+
+                for chunk in client.models.generate_content_stream(
+                    model = model,
+                    contents = contents,
+                    config = generate_content_config,
+                    ):
+                    print(chunk.text, end="")
+                    full_response = chunk.text
+
+                print("Google AI")
+
             else:
-                # Construct the request payload for normal chat
-                ollama_payload = {
-                    "model": "llama3.2",
-                    "prompt": conversation_history,
-                    "stream": False
-                }
+                # Check if the request is for summarization
+                if conversation_history.startswith("**Summarize"):
+                    # Construct the request payload for summarization
+                    ollama_payload = {
+                        "model": "llama3.2",
+                        "prompt": conversation_history,
+                        "stream": False
+                    }
+                else:
+                    # Construct the request payload for normal chat
+                    ollama_payload = {
+                        "model": "llama3.2",
+                        "prompt": conversation_history,
+                        "stream": False
+                    }
 
-            # Call the Ollama API
-            ollama_url = app.config['CONF_SERVICES_OLLAMA']+'/api/generate'
-            print(" URL: "+ollama_url)
-            response = requests.post(ollama_url, json=ollama_payload)
-            response.raise_for_status()
+                # Call the Ollama API
+                ollama_url = app.config['CONF_SERVICES_OLLAMA']+'/api/generate'
+                print(" URL: "+ollama_url)
+                response = requests.post(ollama_url, json=ollama_payload)
+                response.raise_for_status()
 
+                # Accumulate the response
+                full_response = ""
+                response_data = response.json()
+                full_response = response_data.get("response")
+                print("local Ollama")
 
             print("(!) Sending payload to ollama")
-            print(ollama_payload)
-        
-            # Accumulate the response
-            full_response = ""
-            response_data = response.json()
-            full_response = response_data.get("response")
-
-            return jsonify({'response': full_response})
+            print(full_response)
+            
+            return jsonify({'response': full_response}), 200
 
         except Exception as e:
             return jsonify({'error': f'An unexpected error occurred: {e}'}), 500
