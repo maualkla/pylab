@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+{% block title %} Boda de Victoria & Abduhlla {% endblock %}
+
+    <!-- Importing elegant fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+            
+    {% block styles %}
+        <link rel="stylesheet" href="../static/wedding.css">
+        {{ super() }}
+    {% endblock %}
+<body>
+
+    <!-- Hero Section -->
+    <header>
+        <p>¡Nos casamos!</p>
+        <h1 class="script-font">Victoria & Abduhlla</h1>
+        <p>25 de Octubre, 2025</p>
+    </header>
+
+    <!-- Intro / Our Story -->
+    <section>
+        <h2 class="script-font" style="font-size: 3rem; color: var(--primary-color);">Nuestra Historia</h2>
+        <div class="divider">❧</div>
+        <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+            <br><br>
+            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+    </section>
+
+    <!-- Details & Countdown -->
+    <section style="background-color: #fff;">
+        <h3>¡La Gran Fecha!</h3>
+        <div id="countdown">
+            <div class="time-box"><span id="days">00</span><small>Días</small></div>
+            <div class="time-box"><span id="hours">00</span><small>Horas</small></div>
+            <div class="time-box"><span id="minutes">00</span><small>Min</small></div>
+            <div class="time-box"><span id="seconds">00</span><small>Seg</small></div>
+        </div>
+    </section>
+
+    <!-- Location & Map -->
+    <section>
+        <h2 class="script-font" style="font-size: 2.5rem;">Ceremonia y Recepción</h2>
+        <p style="font-weight: bold; margin-top: 10px;">Hacienda Los Amantes, México</p>
+        <p>Calle Principal #123, Centro Histórico</p>
+        <br>
+        <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna.
+        </p>
+
+        <!-- Google Maps Embed (Placeholder: Zocalo, Mexico City) -->
+        <div class="map-container">
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.5336880260324!2d-99.133208!3d19.432608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1f92b75aa014d%3A0x17d810d20da6e8cf!2sPlaza%20de%20la%20Constituci%C3%B3n!5e0!3m2!1ses-419!2smx!4v1684429123456!5m2!1ses-419!2smx" 
+                allowfullscreen="" 
+                loading="lazy" 
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </section>
+
+    <!-- RSVP -->
+    <section style="background-color: var(--bg-color); padding-bottom: 80px;">
+        <h2>¿Nos acompañas?</h2>
+        <p style="margin-top: 10px;">Por favor confirma tu asistencia antes del 1 de Septiembre.</p>
+        <button class="btn" onclick="confirmAttendance()">Confirmar Asistencia</button>
+    </section>
+
+    <footer>
+        <p>Con amor, Victoria & Abduhlla &copy; 2025</p>
+    </footer>
+
+    {% block scripts %}
+        <script src="../static/wedding.js"></script>
+        {{ super()}}
+    {% endblock %}
+
+{% endblock %}

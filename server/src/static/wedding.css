@@ -1,0 +1,155 @@
+<style>
+        :root {
+            --primary-color: #D4AF37; /* Gold */
+            --secondary-color: #556B2F; /* Dark Sage Green */
+            --bg-color: #FAFAF8; /* Off white */
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            font-weight: 400;
+        }
+
+        .script-font {
+            font-family: 'Great Vibes', cursive;
+            color: var(--secondary-color);
+        }
+
+        /* Hero Section */
+        header {
+            height: 90vh;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1519225421980-715cb0202128?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        header p {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Sections */
+        section {
+            padding: 60px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .divider {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+
+        /* Countdown */
+        #countdown {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .time-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 80px;
+        }
+
+        .time-box span {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .time-box small {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        /* Map */
+        .map-container {
+            position: relative;
+            overflow: hidden;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .map-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: #b58f2a;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            header h1 { font-size: 3rem; }
+            header p { font-size: 1.2rem; }
+            #countdown { gap: 10px; }
+            .time-box { min-width: 60px; padding: 10px; }
+        }

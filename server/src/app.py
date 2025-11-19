@@ -321,5 +321,13 @@ def countries():
             return jsonify({'error': f'An unexpected error occurred: {e}'}), 500                   
 
 
+@app.route('/wedding')
+def wedding():
+    local_ip = request.remote_addr
+    context = {
+        "local_ip" : local_ip
+    }
+    return render_template('wedding.html', **context)
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
