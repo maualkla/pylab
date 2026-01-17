@@ -1,0 +1,3363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DroneOS v5.2 - Infrastructure</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #238636;
+            --accent-red: #da3633;
+            --accent-purple: #a371f7;
+            --accent-orange: #d29922;
+            --accent-cyan: #39c5cf;
+            --border: #30363d;
+            --font-mono: 'Courier New', Courier, monospace;
+            --overlay-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* --- Start Screen --- */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d1117;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .boot-box {
+            border: 1px solid var(--accent-blue);
+            padding: 40px;
+            border-radius: 8px;
+            background: #161b22;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+        }
+
+        .boot-title {
+            font-size: 2rem;
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            font-family: var(--font-mono);
+        }
+
+        .boot-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            color: white;
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .diff-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .diff-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            background: #21262d;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .diff-btn.selected {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            background: rgba(35, 134, 54, 0.1);
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent-blue);
+            color: #0d1117;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* --- Layout --- */
+        .container {
+            display: grid;
+            grid-template-columns: 340px 1fr 340px;
+            grid-template-rows: 60px 1fr 200px;
+            gap: 15px;
+            height: 100%;
+            max-width: 1900px;
+            margin: 0 auto;
+            opacity: 0.1;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        .container.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* --- Top Bars (TRIPLE) --- */
+        .top-bars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #time-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #000;
+        }
+
+        #time-bar {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 1s linear;
+            opacity: 0.5;
+        }
+
+        /* Triple Status Bar Container */
+        .status-bars {
+            display: flex;
+            width: 100%;
+            height: 26px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-section {
+            flex: 1;
+            position: relative;
+            border-right: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            overflow: hidden;
+        }
+
+        #research-bar-fill {
+            height: 100%;
+            background: rgba(163, 113, 247, 0.3);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0%;
+            z-index: 1;
+            transition: width 0.5s linear;
+        }
+
+        #build-bar-fill {
+            height: 100%;
+            background: rgba(35, 134, 54, 0.4);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0%;
+            z-index: 1;
+            transition: width 0.2s linear;
+        }
+
+        #infra-bar-fill {
+            height: 100%;
+            background: rgba(88, 166, 255, 0.3);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0%;
+            z-index: 1;
+            transition: width 0.2s linear;
+        }
+
+        .bar-text {
+            z-index: 2;
+            position: relative;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        #research-text {
+            color: var(--accent-purple);
+        }
+
+        #build-text {
+            color: #7ee787;
+        }
+
+        #infra-text {
+            color: var(--accent-blue);
+        }
+
+        /* --- Header --- */
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding: 0 10px;
+            margin-top: 30px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .company-name {
+            font-weight: bold;
+            color: white;
+            font-family: var(--font-mono);
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 1px solid var(--border);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            align-items: center;
+        }
+
+        .money {
+            color: #7ee787;
+            text-shadow: 0 0 5px rgba(126, 231, 135, 0.2);
+        }
+
+        /* --- Panels --- */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-panel {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* --- Tabs --- */
+        .tabs-header {
+            display: flex;
+            background: #161b22;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--text-muted);
+            padding: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: 0.2s;
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--accent-blue);
+            color: white;
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- Controls --- */
+        button {
+            background: #21262d;
+            border: 1px solid var(--border);
+            color: var(--accent-blue);
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+            margin-bottom: 5px;
+            width: 100%;
+            text-align: left;
+        }
+
+        button:hover:not(:disabled) {
+            background: #30363d;
+            border-color: var(--text-muted);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .btn-small {
+            width: auto;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .btn-market {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            padding: 6px 10px;
+        }
+
+        .price-tag {
+            font-family: var(--font-mono);
+            font-weight: bold;
+        }
+
+        .price-up {
+            color: var(--accent-red);
+        }
+
+        .price-down {
+            color: var(--accent-green);
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .res-box {
+            background: #0d1117;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .res-box span {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .res-box strong {
+            font-size: 1rem;
+            font-family: var(--font-mono);
+            color: white;
+        }
+
+        input[type=range] {
+            width: 100%;
+            margin: 5px 0 10px 0;
+            cursor: pointer;
+            accent-color: var(--accent-blue);
+            display: block;
+        }
+
+        .label-val {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .name-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .design-controls {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .design-select {
+            flex-grow: 1;
+            background: #0d1117;
+            color: white;
+            border: 1px solid var(--border);
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .build-control-panel {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+            background: #161b22;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .qty-input {
+            width: 80px;
+            padding: 8px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            color: white;
+            font-family: var(--font-mono);
+            text-align: center;
+            font-size: 1rem;
+            border-radius: 4px;
+        }
+
+        .time-display {
+            flex-grow: 1;
+            text-align: right;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+        }
+
+        #build-btn-main {
+            margin: 0;
+            background: var(--accent-green);
+            color: white;
+            font-weight: bold;
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .drone-preview {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 10px;
+            border: 1px dashed var(--border);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .stat-box {
+            background: #161b22;
+            padding: 5px 2px;
+            border-radius: 4px;
+            border: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-box small {
+            color: var(--text-muted);
+            font-size: 0.6rem;
+            text-transform: uppercase;
+        }
+
+        .stat-box span {
+            font-weight: bold;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        /* --- Blueprints Tab --- */
+        .blueprint-card {
+            background: #161b22;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bp-info strong {
+            font-size: 1rem;
+            color: var(--accent-cyan);
+        }
+
+        .bp-stats {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* --- Tech R&D --- */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .tech-card {
+            background: #161b22;
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tech-card h4 {
+            margin: 0 0 5px 0;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .tech-meta {
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-bottom: 8px;
+        }
+
+        /* --- Contracts --- */
+        .contract-card {
+            background: #21262d;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 3px solid transparent;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .contract-card:hover {
+            transform: translateX(5px);
+            background: #30363d;
+        }
+
+        .contract-gov {
+            border-color: var(--accent-blue);
+        }
+
+        .contract-police {
+            border-color: var(--accent-red);
+        }
+
+        .contract-logistics {
+            border-color: var(--accent-purple);
+        }
+
+        .contract-media {
+            border-color: var(--accent-orange);
+        }
+
+        .contract-agri {
+            border-color: var(--accent-green);
+        }
+
+        .contract-retail {
+            border-color: #d29922;
+            /* accent-orange */
+        }
+
+        .contract-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .contract-title {
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+        }
+
+        .contract-tier {
+            font-size: 0.7rem;
+            background: #30363d;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 5px;
+            color: #8b949e;
+        }
+
+        .req-grid {
+            font-size: 0.7rem;
+            color: #c9d1d9;
+            margin: 8px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .req-item {
+            font-family: var(--font-mono);
+        }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            width: 500px;
+            max-width: 90%;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-body {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .modal-flavor {
+            font-style: italic;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 10px;
+        }
+
+        .modal-reqs {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .close-modal-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            width: auto;
+            color: var(--text-muted);
+        }
+
+        /* --- Utils --- */
+        #log-panel {
+            grid-column: 1 / -1;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: #0d1117;
+        }
+
+        .log-entry {
+            margin-bottom: 2px;
+            border-left: 2px solid var(--border);
+            padding-left: 6px;
+        }
+
+        .inventory-list {
+            overflow-y: auto;
+            height: 100%;
+            padding-right: 5px;
+        }
+
+        .inv-item {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            padding: 8px;
+        }
+
+        .spec-table {
+            width: 100%;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .spec-table td {
+            width: 50%;
+        }
+
+        #supply-chain {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        #center-panel {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        #market {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .accessory-header {
+            font-size: 0.7rem;
+            color: #8b949e;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            border-top: 1px solid var(--border);
+            padding-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="start-screen">
+        <div class="boot-box">
+            <div class="boot-title">Drone Tycoon IO</div>
+            <input type="text" id="company-name-input" class="boot-input" placeholder="ENTER COMPANY NAME"
+                value="SkyNet Industries">
+            <div class="diff-select" id="diff-select">
+                <button class="diff-btn selected"
+                    onclick="ui.selectDiff('easy', this)"><strong>EASY</strong><br><small>$500k</small></button>
+                <button class="diff-btn"
+                    onclick="ui.selectDiff('medium', this)"><strong>MED</strong><br><small>$250k</small></button>
+                <button class="diff-btn"
+                    onclick="ui.selectDiff('hard', this)"><strong>HARD</strong><br><small>$50k</small></button>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom:5px; display:block;">Event
+                    Frequency</label>
+                <div class="diff-select" id="freq-select">
+                    <button class="diff-btn selected"
+                        onclick="ui.selectFreq('normal', this)"><strong>NORMAL</strong><br><small>Safe</small></button>
+                    <button class="diff-btn" onclick="ui.selectFreq('chaos', this)"
+                        style="border-color:var(--accent-orange); color:var(--accent-orange);"><strong>CHAOS</strong><br><small>High</small></button>
+                </div>
+            </div>
+
+            <button class="start-btn" onclick="game.start()">INITIALIZE SYSTEM</button>
+
+            <div style="margin-top:15px; text-align:center;">
+                <input type="file" id="load-file" style="display:none;" onchange="game.importSave(event)">
+                <button class="btn" style="border:1px dashed #444; color:#888;"
+                    onclick="document.getElementById('load-file').click()">LOAD SAVE FILE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-bars">
+        <div id="time-bar-container">
+            <div id="time-bar"></div>
+        </div>
+
+        <div class="status-bars">
+            <div class="status-section">
+                <div id="research-bar-fill"></div>
+                <span class="bar-text" id="research-text">No Research Active</span>
+            </div>
+            <div class="status-section">
+                <div id="build-bar-fill"></div>
+                <span class="bar-text" id="build-text">Factory Idle</span>
+            </div>
+            <div class="status-section" style="border-right:none;">
+                <div id="infra-bar-fill"></div>
+                <span class="bar-text" id="infra-text">Infrastructure Idle</span>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div id="pause-overlay"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:4000; justify-content:center; align-items:center; flex-direction:column;">
+        <div
+            style="font-size:3rem; color:var(--accent-orange); font-family:var(--font-mono); font-weight:bold; letter-spacing:5px; margin-bottom:20px;">
+            PAUSED</div>
+        <button onclick="game.togglePause()"
+            style="width:auto; font-size:1.2rem; padding:10px 30px; background:var(--accent-orange); color:black; font-weight:bold; border-color:var(--accent-orange);">RESUME</button>
+    </div>
+
+    <div id="contract-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="modal-title">Mission Briefing</span>
+                <span id="modal-pay" style="color:var(--accent-green)">$0</span>
+            </div>
+            <div class="modal-body">
+                <div id="modal-flavor" class="modal-flavor">...</div>
+                <div class="modal-reqs" id="modal-reqs">...</div>
+                <div class="modal-actions">
+                    <button id="modal-accept-btn"
+                        style="background:var(--accent-blue); color:black; font-weight:bold;">ACCEPT CONTRACT</button>
+                    <button class="close-modal-btn" onclick="ui.closeModal()">DECLINE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="game-container">
+        <header>
+            <h1>DroneOS <span class="company-name" id="display-company-name">SkyNet</span></h1>
+            <div class="stats-bar">
+                <span class="date-display">MONTH <span id="month-num">1</span> <button class="btn-small"
+                        style="display:inline; margin:0 0 0 5px; padding:2px 6px;"
+                        onclick="game.skipMonth()">>></button></span>
+                <span>CASH: <span id="cash-display" class="money">$0</span></span>
+                <span>REP: <span id="rep-display" class="rep">0</span></span>
+                <button class="btn-small" style="background:#d29922; color:black; font-weight:bold;"
+                    onclick="game.togglePause()" id="pause-btn">⏸ PAUSE</button>
+                <button class="btn-small" onclick="if(confirm('Quit?')) location.reload()">Quit</button>
+            </div>
+        </header>
+
+        <!-- Bank Loan Modal -->
+        <div id="bank-modal" class="modal-overlay" style="display:none; z-index:200;">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3>First National Drone Bank</h3>
+                    <button class="close-btn" onclick="ui.closeModal()">X</button>
+                </div>
+                <div style="margin-bottom:15px; color:#8b949e;">
+                    <p>Welcome, <span id="bank-company-name">CEO</span>.</p>
+                    <p>Based on your reputation of <strong id="bank-rep" style="color:white;">0</strong>, we can offer
+                        you:</p>
+                    <ul style="list-style:none; padding:10px; background:#0d1117; border-radius:4px;">
+                        <li>Interest Rate: <strong id="bank-rate" style="color:#da3633;">50%</strong></li>
+                        <li>Credit Limit: <strong id="bank-limit" style="color:#7ee787;">$10,000</strong></li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <label style="font-size:0.8rem; color:#8b949e;">Loan Amount:</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="range" id="bank-input" min="1000" max="10000" step="1000" value="5000"
+                            style="flex:1;" oninput="game.updateBankUI()">
+                        <span id="bank-val"
+                            style="width:80px; text-align:right; font-family:monospace; color:white;">$5,000</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px; font-size:0.9rem; border-top:1px solid #30363d; padding-top:10px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>You Receive:</span>
+                        <span id="bank-get" style="color:#7ee787;">$5,000</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Total Payback:</span>
+                        <span id="bank-pay" style="color:#da3633;">$7,500</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>Monthly x12:</span>
+                        <span id="bank-monthly" style="color:white;">$625/mo</span>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-small" onclick="ui.closeModal()">Cancel</button>
+                    <button id="bank-accept-btn" class="btn-primary" onclick="game.acceptBankLoan()">Sign
+                        Contract</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loan Modal -->
+        <div id="loan-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-box" style="border-color: #da3633;">
+                <h3 style="color:#da3633; margin-top:0;">⚠ Financial Warning</h3>
+                <p>Your cash balance is negative!</p>
+                <p>Consecutive months in debt: <span id="debt-strikes"
+                        style="font-weight:bold; color:#da3633;">1</span>/3</p>
+
+                <div style="background:#161b22; padding:15px; border-radius:6px; margin:15px 0;">
+                    <h4 style="margin:0 0 10px 0;">Emergency Loan Offer</h4>
+                    <p id="loan-offer-text" style="font-size:0.9rem; color:#8b949e;">Because you are a new startup...
+                    </p>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span>Receive Now:</span> <span id="loan-get"
+                            style="color:#7ee787; font-weight:bold;">$10,000</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Repay Later:</span> <span id="loan-pay"
+                            style="color:#da3633; font-weight:bold;">$15,000</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-small" style="flex:1; background:#1f6feb; border-color:#1f6feb; color:white;"
+                        onclick="game.acceptLoan()">Accept Offer</button>
+                    <button class="btn-small" style="flex:1; border-color:#da3633; color:#da3633;"
+                        onclick="document.getElementById('loan-modal').style.display='none'">Decline (Risky)</button>
+                </div>
+            </div>
+        </div>
+
+        <section id="supply-chain" class="panel">
+            <h2>Supply Chain</h2>
+            <div
+                style="background:#0d1117; padding:10px; border-radius:4px; margin-bottom:15px; border:1px solid #30363d; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-size:0.9rem; color:white; font-weight:bold;">Material Silo</div>
+                    <div style="font-size:0.75rem; color:#8b949e;">Capacity: <span id="mat-storage-disp">0/200</span> |
+                        Staff: <span id="emp-silo-disp">2</span></div>
+                </div>
+                <button class="btn-small" id="btn-upg-silo"
+                    style="width:auto; border-color:var(--accent-blue); color:var(--accent-blue);"
+                    onclick="game.upgradeInfrastructure('silo')">Expand ($2k)</button>
+            </div>
+
+            <div id="silo-inventory-list"
+                style="display:block; min-height:50px; background:#0d1117; max-height:200px; overflow-y:auto; border-radius:4px; padding:5px; border:1px solid #30363d; margin-bottom:15px;">
+                <!-- Filled by JS -->
+            </div>
+
+            <div id="raw-market-list"></div>
+
+            <div id="accessory-market">
+            </div>
+
+        </section>
+
+        <section id="center-panel" class="panel tab-panel">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="ui.switchTab('design', this)">Design</button>
+                <button class="tab-btn" onclick="ui.switchTab('tech', this)">R&D</button>
+                <button class="tab-btn" onclick="ui.switchTab('blueprints', this)">Blueprints</button>
+                <button class="tab-btn" onclick="ui.switchTab('inventory', this)">Inventory</button>
+                <button class="tab-btn" onclick="ui.switchTab('admin', this)">Admin</button>
+            </div>
+
+            <div id="tab-design" class="tab-content active">
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-bottom:15px; border:1px solid #30363d; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:0.9rem; color:white; font-weight:bold;">Drone Factory <span
+                                id="factory-lvl-badge"
+                                style="background:var(--accent-orange); color:black; font-size:0.7em; padding:2px 5px; border-radius:3px;">LVL
+                                <span id="factory-lvl">1</span></span></div>
+                        <div style="font-size:0.75rem; color:#8b949e;">Output: <span id="factory-rate-disp">100%</span>
+                            | Staff: <span id="emp-fac-disp">10</span></div>
+                    </div>
+                    <button class="btn-small" id="btn-upg-factory"
+                        style="width:auto; border-color:var(--accent-orange); color:var(--accent-orange);"
+                        onclick="game.upgradeInfrastructure('factory')">Upgrade ($10k)</button>
+                </div>
+
+                <div class="drone-preview">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="text" id="model-name-input" class="name-input" value="MK-1 Prototype">
+                        <button class="btn-small" style="width:auto; margin:0;" onclick="game.saveDesign()">💾</button>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-box"><small>Speed</small><span id="stat-speed">0</span></div>
+                        <div class="stat-box"><small>Range</small><span id="stat-range">0 km</span></div>
+                        <div class="stat-box"><small>Load</small><span id="stat-load">0 kg</span></div>
+                        <div class="stat-box"><small>Reliability</small><span id="stat-rel">0%</span></div>
+                        <div class="stat-box"><small>Weight</small><span id="stat-weight">0 kg</span></div>
+                        <div class="stat-box"><small>Stealth</small><span id="stat-stealth">0</span></div>
+                        <div class="stat-box"><small>Life</small><span id="stat-life">0 h</span></div>
+                        <div class="stat-box"><small>Cost</small><span id="stat-cost">$0</span></div>
+                    </div>
+                </div>
+
+                <div class="design-controls">
+                    <select id="saved-designs" class="design-select" onchange="game.loadDesign(this.value)">
+                        <option value="">-- Load Blueprint --</option>
+                    </select>
+                </div>
+
+                <div class="action-group" style="margin-bottom: 5px;">
+                    <div class="label-val"><span>Component Slot</span></div>
+                    <select id="select-accessory" class="design-select" onchange="game.updateDesign()">
+                        <option value="none">None</option>
+                        <!-- Tier 1 -->
+                        <option value="camera" id="opt-camera" disabled>📷 4K Camera (Requires Stock)</option>
+                        <option value="siren" id="opt-siren" disabled>📢 Siren System (Requires Stock)</option>
+                        <option value="spotlight" id="opt-spotlight" disabled>🔦 Spotlight (Requires Stock)</option>
+
+                        <!-- Tier 2 -->
+                        <option value="sensor" id="opt-sensor" disabled>🌾 Ag-Sensor (Requires Stock)</option>
+                        <option value="claw" id="opt-claw" disabled>🪝 Servo Claw (Requires Stock)</option>
+                        <option value="medkit" id="opt-medkit" disabled>🩺 Med-Kit (Requires Stock)</option>
+                        <option value="nightvision" id="opt-nightvision" disabled>🌙 Night Vision (Requires Stock)
+                        </option>
+                        <option value="magnet" id="opt-magnet" disabled>🧲 Magnet (Requires Stock)</option>
+                        <option value="defib" id="opt-defib" disabled>⚡ Defibrillator (Requires Stock)</option>
+                        <option value="sniffer" id="opt-sniffer" disabled>👃 Gas Sniffer (Requires Stock)</option>
+
+                        <!-- Tier 3 -->
+                        <option value="lidar" id="opt-lidar" disabled>📡 LIDAR (Requires Stock)</option>
+                        <option value="thermal" id="opt-thermal" disabled>🎯 Thermal Ops (Requires Stock)</option>
+                        <option value="winch" id="opt-winch" disabled>🏗️ Winch (Requires Stock)</option>
+                        <option value="net" id="opt-net" disabled>🕸️ Net Launcher (Requires Stock)</option>
+                        <option value="raft" id="opt-raft" disabled>🛶 Life Raft (Requires Stock)</option>
+                        <option value="seeder" id="opt-seeder" disabled>🌱 Auto-Seeder (Requires Stock)</option>
+                        <option value="geiger" id="opt-geiger" disabled>☢️ Geiger Counter (Requires Stock)</option>
+                        <option value="encrypt" id="opt-encrypt" disabled>🔒 Encryption (Requires Stock)</option>
+
+                        <!-- Misc -->
+                        <option value="solar" id="opt-solar" disabled>☀️ Solar Array (Requires Stock)</option>
+                        <option value="sprayer" id="opt-sprayer" disabled>🚿 Sprayer (Requires Stock)</option>
+                        <option value="jammer" id="opt-jammer" disabled>📵 Jammer (Requires Stock)</option>
+                        <option value="gimbal" id="opt-gimbal" disabled>🎥 Gimbal (Requires Stock)</option>
+                    </select>
+
+                    <div id="slot-2-container"
+                        style="display:none; margin-top:5px; border-top:1px dashed #30363d; padding-top:5px;">
+                        <div class="label-val" style="color:var(--accent-purple); font-size:0.8rem;"><span>Secondary
+                                Slot (Tier 2+)</span></div>
+                        <select id="select-accessory-2" class="design-select" onchange="game.updateDesign()">
+                            <option value="none">None</option>
+                            <!-- List mirrored for secondary slot selection -->
+                            <!-- Tier 1 -->
+                            <option value="camera" id="opt2-camera" disabled>📷 4K Camera</option>
+                            <option value="siren" id="opt2-siren" disabled>📢 Siren System</option>
+                            <option value="spotlight" id="opt2-spotlight" disabled>🔦 Spotlight</option>
+
+                            <!-- Tier 2 -->
+                            <option value="sensor" id="opt2-sensor" disabled>🌾 Ag-Sensor</option>
+                            <option value="claw" id="opt2-claw" disabled>🪝 Servo Claw</option>
+                            <option value="medkit" id="opt2-medkit" disabled>🩺 Med-Kit</option>
+                            <option value="nightvision" id="opt2-nightvision" disabled>🌙 Night Vision</option>
+                            <option value="magnet" id="opt2-magnet" disabled>🧲 Magnet</option>
+                            <option value="defib" id="opt2-defib" disabled>⚡ Defibrillator</option>
+                            <option value="sniffer" id="opt2-sniffer" disabled>👃 Gas Sniffer</option>
+
+                            <!-- Tier 3 -->
+                            <option value="lidar" id="opt2-lidar" disabled>📡 LIDAR</option>
+                            <option value="thermal" id="opt2-thermal" disabled>🎯 Thermal Ops</option>
+                            <option value="winch" id="opt2-winch" disabled>🏗️ Winch</option>
+                            <option value="net" id="opt2-net" disabled>🕸️ Net Launcher</option>
+                            <option value="raft" id="opt2-raft" disabled>🛶 Life Raft</option>
+                            <option value="seeder" id="opt2-seeder" disabled>🌱 Auto-Seeder</option>
+                            <option value="geiger" id="opt2-geiger" disabled>☢️ Geiger Counter</option>
+                            <option value="encrypt" id="opt2-encrypt" disabled>🔒 Encryption</option>
+
+                            <!-- Misc -->
+                            <option value="solar" id="opt2-solar" disabled>☀️ Solar Array</option>
+                            <option value="sprayer" id="opt2-sprayer" disabled>🚿 Sprayer</option>
+                            <option value="jammer" id="opt2-jammer" disabled>📵 Jammer</option>
+                            <option value="gimbal" id="opt2-gimbal" disabled>🎥 Gimbal</option>
+                        </select>
+                    </div>
+
+                    <div class="label-val"><span>Engine</span> <span id="val-eng">5</span></div>
+                    <input type="range" min="1" max="10" value="5" id="slider-engine" oninput="game.updateDesign()">
+
+                    <div class="label-val"><span>Battery</span> <span id="val-bat">5</span></div>
+                    <input type="range" min="1" max="10" value="5" id="slider-battery" oninput="game.updateDesign()">
+
+                    <div class="label-val"><span>Frame</span> <span id="val-frame">2</span></div>
+                    <input type="range" min="1" max="10" value="2" id="slider-frame" oninput="game.updateDesign()">
+
+                    <div class="label-val"><span>AI</span> <span id="val-ai">0</span></div>
+                    <input type="range" min="0" max="5" value="0" id="slider-ai" oninput="game.updateDesign()">
+                </div>
+
+                <div class="req-grid"
+                    style="font-family:var(--font-mono); margin-bottom:10px; color:#fff; background:none;">
+                    Req: <span id="req-mats-display" style="color:var(--accent-blue);"></span>
+                </div>
+
+                <div class="build-control-panel">
+                    <label style="font-size:0.8rem; color:#8b949e;">QTY:</label>
+                    <input type="number" id="build-qty" class="qty-input" value="1" min="1" max="100"
+                        oninput="game.updateBuildPreview()">
+                    <div class="time-display" id="build-time-preview">Est: 1.3s</div>
+                    <button onclick="game.manufacture()" id="build-btn-main">BUILD</button>
+                </div>
+            </div>
+
+            <div id="tab-tech" class="tab-content">
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-bottom:15px; border:1px solid #30363d; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:0.9rem; color:white; font-weight:bold;">R&D Department <span
+                                id="rd-lvl-badge"
+                                style="background:var(--accent-purple); color:black; font-size:0.7em; padding:2px 5px; border-radius:3px;">LVL
+                                1</span></div>
+                        <div style="font-size:0.75rem; color:#8b949e;">Speed: <span id="rd-speed-disp">0.75x</span> |
+                            Staff: <span id="rd-staff-disp">3</span></div>
+                    </div>
+                    <button class="btn-small" id="btn-upg-rd"
+                        style="width:auto; border-color:var(--accent-purple); color:var(--accent-purple);"
+                        onclick="game.upgradeInfrastructure('rd')">Expand ($15k)</button>
+                </div>
+                <div class="tech-grid" id="tech-list"></div>
+            </div>
+
+            <div id="tab-blueprints" class="tab-content">
+                <div id="blueprints-list"></div>
+            </div>
+
+            <div id="tab-inventory" class="tab-content">
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-bottom:15px; border:1px solid #30363d; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:0.9rem; color:white; font-weight:bold;">Logistics Warehouse</div>
+                        <div style="font-size:0.75rem; color:#8b949e;">Storage: <span id="storage-disp">0/20</span> |
+                            Staff: <span id="emp-wh-disp">3</span></div>
+                    </div>
+                    <button class="btn-small" id="btn-upg-warehouse"
+                        style="width:auto; border-color:var(--accent-green); color:var(--accent-green);"
+                        onclick="game.upgradeInfrastructure('warehouse')">Expand ($2.5k)</button>
+                </div>
+                <div id="inventory-list" class="inventory-list"></div>
+            </div>
+
+            <div id="tab-admin" class="tab-content">
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-bottom:15px; border:1px solid #30363d;">
+                    <h4 style="margin:0 0 10px 0; color:white;">Workforce & Overhead</h4>
+                    <table class="spec-table" style="font-size:0.9rem;">
+                        <tr>
+                            <td style="color:#8b949e">Silo Staff</td>
+                            <td id="emp-silo" style="text-align:right">0</td>
+                        </tr>
+                        <tr>
+                            <td style="color:#8b949e">Warehouse Staff</td>
+                            <td id="emp-wh" style="text-align:right">0</td>
+                        </tr>
+                        <tr>
+                            <td style="color:#8b949e">Factory Staff</td>
+                            <td id="emp-fac" style="text-align:right">0</td>
+                        </tr>
+                        <tr>
+                            <td style="color:#8b949e">R&D Staff</td>
+                            <td id="emp-rd" style="text-align:right">0</td>
+                        </tr>
+                        <tr style="border-top:1px solid #30363d">
+                            <td style="padding-top:5px; color:#fff;">Total Employees</td>
+                            <td id="emp-total" style="padding-top:5px; text-align:right; color:#fff;">0</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="background:#0d1117; padding:10px; border-radius:4px; border:1px solid #30363d;">
+                    <h4 style="margin:0 0 10px 0; color:white;">Financial Report (Last Month)</h4>
+                    <table class="spec-table" style="font-size:0.9rem;">
+                        <tr>
+                            <td style="color:#8b949e">Salaries</td>
+                            <td id="bill-sal" style="text-align:right; color:#da3633">$0</td>
+                        </tr>
+                        <tr>
+                            <td style="color:#8b949e">Energy & Utils</td>
+                            <td id="bill-util" style="text-align:right; color:#da3633">$0</td>
+                        </tr>
+                        <tr>
+                            <td style="color:#8b949e">Taxes (15% Rev)</td>
+                            <td id="bill-tax" style="text-align:right; color:#da3633">$0</td>
+                        </tr>
+                        <tr>
+                            <td style="color:#8b949e">Loan Payment</td>
+                            <td id="bill-loan" style="text-align:right; color:#da3633">$0</td>
+                        </tr>
+                        <tr style="border-top:1px solid #30363d">
+                            <td style="padding-top:5px; color:#fff;">Total Paid</td>
+                            <td id="bill-total"
+                                style="padding-top:5px; text-align:right; color:#da3633; font-weight:bold;">$0</td>
+                        </tr>
+                    </table>
+                    <div style="margin-top:15px; font-size:0.8rem; color:#8b949e;">
+                        Projected Bill (This Month): <span id="proj-bill" style="color:#fff;">$0</span><br>
+                        Current Revenue: <span id="cur-rev" style="color:#7ee787;">$0</span>
+                    </div>
+                </div>
+
+                <!-- Sales Stats -->
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-top:15px; border:1px solid #30363d;">
+                    <h4 style="margin:0 0 10px 0; color:white;">Lifetime Sales Performance</h4>
+                    <div id="sales-stats"></div>
+                </div>
+
+                <!-- Certifications -->
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-top:15px; border:1px solid #30363d;">
+                    <h4 style="margin:0 0 10px 0; color:white;">Certifications & Licenses</h4>
+                    <div id="cert-list"></div>
+                </div>
+
+                <!-- Loans Section -->
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-top:15px; border:1px solid #30363d;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0 0 10px 0; color:white;">Liabilities & Loans</h4>
+                        <button class="btn-small" onclick="game.openBankModal()" title="Request Bank Loan"
+                            style="padding:4px 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="feather feather-dollar-sign">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="loan-list"></div>
+                    <div style="font-size:0.8rem; color:#8b949e; margin-top:10px;">
+                        Consecutive Months in Debt: <span id="debt-strikes-disp"
+                            style="color:#da3633; font-weight:bold;">0</span>/3
+                    </div>
+                </div>
+
+                <!-- Save System -->
+                <div
+                    style="background:#0d1117; padding:10px; border-radius:4px; margin-top:15px; border:1px solid #30363d;">
+                    <h4 style="margin:0 0 10px 0; color:white;">System</h4>
+                    <button class="btn" onclick="game.saveGame()"
+                        style="width:100%; border-color:#2ea043; color:#2ea043;">Save Game (.json)</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="market" class="panel">
+            <h2>Contracts (Click for Details)</h2>
+            <div id="contracts-list"></div>
+        </section>
+
+        <section id="log-panel" class="panel" style="flex-direction:row; gap:10px;">
+            <div
+                style="flex:1; display:flex; flex-direction:column; border-right:1px solid #30363d; padding-right:10px;">
+                <h2>News Feed</h2>
+                <div id="feed-content" style="flex:1; overflow-y:auto; font-size:0.85rem;"></div>
+            </div>
+            <div style="flex:2; display:flex; flex-direction:column;">
+                <h2>System Log</h2>
+                <div id="log-content" style="flex:1; overflow-y:auto;"></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        class UI {
+            constructor() {
+                this.selectedDiff = 'easy';
+                this.selectedFreq = 'normal';
+            }
+            selectDiff(level, btn) {
+                this.selectedDiff = level;
+                document.querySelectorAll('#diff-select .diff-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            }
+            selectFreq(level, btn) {
+                this.selectedFreq = level;
+                document.querySelectorAll('#freq-select .diff-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            }
+            switchTab(tabName, btn) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById('tab-' + tabName).classList.add('active');
+            }
+            closeModal() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+        }
+        const ui = new UI();
+
+        // Data
+        const ACCESSORIES = {
+            // Tier 1 (Starters)
+            camera: { name: "4K Camera", price: 500, weight: 1.5, power: 1 },
+            siren: { name: "Siren", price: 200, weight: 1.0, power: 1 },
+            spotlight: { name: "Spotlight", price: 350, weight: 1.5, power: 2 },
+
+            // Tier 2 (Unlockable)
+            sensor: { name: "Ag-Sensor", price: 300, weight: 1.0, power: 0.5 },
+            claw: { name: "Servo Claw", price: 400, weight: 3.0, power: 2 },
+            medkit: { name: "Med-Kit", price: 450, weight: 2.0, power: 0.5 },
+            nightvision: { name: "Night Vision", price: 1200, weight: 1.2, power: 1.5 },
+            magnet: { name: "Heavy Magnet", price: 600, weight: 4.0, power: 3 },
+            defib: { name: "AED Defib", price: 800, weight: 2.5, power: 1 },
+            sniffer: { name: "Gas Sniffer", price: 900, weight: 1.5, power: 1 },
+
+            // Tier 3 (Advanced)
+            lidar: { name: "LIDAR", price: 1200, weight: 2.5, power: 2 },
+            thermal: { name: "Thermal", price: 2000, weight: 2.0, power: 1.5 },
+            winch: { name: "Tac-Winch", price: 1500, weight: 3.5, power: 2.5 },
+            net: { name: "Net Launcher", price: 1000, weight: 3.0, power: 1.5 },
+            raft: { name: "Life Raft", price: 1800, weight: 5.0, power: 0 },
+            seeder: { name: "Auto-Seeder", price: 1400, weight: 4.0, power: 2 },
+            geiger: { name: "Geiger Counter", price: 2500, weight: 1.5, power: 1.5 },
+            encrypt: { name: "Encryption Mod", price: 5000, weight: 0.5, power: 3 },
+
+            // Tier 4 (Sci-Fi)
+            holo_ads: { name: "Holo-Projector", price: 8000, weight: 3.0, power: 5 },
+            cabin: { name: "Pax Cabin", price: 12000, weight: 15.0, power: 4 },
+            ion: { name: "Ion Thruster", price: 25000, weight: 8.0, power: 10 },
+
+            // Legacy / Misc
+            solar: { name: "Solar Array", price: 1500, weight: 4.0, power: -1 },
+            sprayer: { name: "Sprayer", price: 600, weight: 3.5, power: 0.5 },
+            jammer: { name: "Sig-Jammer", price: 2500, weight: 2.5, power: 3 },
+            gimbal: { name: "Gimbal", price: 800, weight: 1.5, power: 1 }
+        };
+
+        const TECH_DB = [
+            // Passive Upgrades
+            { id: 'bat_upg', name: 'Battery Efficiency', type: 'passive', cost: 6000, time: 25, desc: 'Increases Range', level: 0 },
+            { id: 'frm_upg', name: 'Alloy Composition', type: 'passive', cost: 6000, time: 25, desc: 'Increases Reliability', level: 0 },
+            { id: 'ai_upg', name: 'Firmware Update', type: 'passive', cost: 10000, time: 38, desc: 'Reduces AI Penalty', level: 0 },
+
+            // Tier 1 Unlocks (No Dependencies)
+            { id: 'unlock_cam', name: 'Optical Sensors', type: 'unlock', cost: 5000, time: 30, desc: 'Unlock Camera', locked: true, key: 'camera' },
+            { id: 'unlock_siren', name: 'Acoustics', type: 'unlock', cost: 3000, time: 20, desc: 'Unlock Siren', locked: true, key: 'siren' },
+            { id: 'unlock_spot', name: 'Hi-Lumns', type: 'unlock', cost: 4000, time: 25, desc: 'Unlock Spotlight', locked: true, key: 'spotlight' },
+            { id: 'unlock_solar', name: 'Photovoltaics', type: 'unlock', cost: 15000, time: 60, desc: 'Unlock Solar', locked: true, key: 'solar' },
+            { id: 'unlock_jam', name: 'Signal War', type: 'unlock', cost: 20000, time: 80, desc: 'Unlock Jammer', locked: true, key: 'jammer' },
+            { id: 'unlock_gim', name: 'Stabilization', type: 'unlock', cost: 8000, time: 45, desc: 'Unlock Gimbal', locked: true, key: 'gimbal' },
+
+            // Tier 2 Unlocks (Requires Tier 1 or specific base types)
+            { id: 'unlock_sen', name: 'Bio-Scanning', type: 'unlock', cost: 7000, time: 35, desc: 'Unlock Ag-Sensor', locked: true, key: 'sensor' },
+            { id: 'unlock_claw', name: 'Heavy Servos', type: 'unlock', cost: 6000, time: 30, desc: 'Unlock Claw', locked: true, key: 'claw' },
+            { id: 'unlock_med', name: 'Bio-Logistics', type: 'unlock', cost: 5000, time: 30, desc: 'Unlock Med-Kit', locked: true, key: 'medkit' },
+
+            { id: 'unlock_nv', name: 'Low Light Ops', type: 'unlock', cost: 12000, time: 50, desc: 'Unlock Night Vision', locked: true, key: 'nightvision', requires: 'camera' },
+            { id: 'unlock_mag', name: 'Magnetic Field', type: 'unlock', cost: 10000, time: 45, desc: 'Unlock Magnet', locked: true, key: 'magnet', requires: 'claw' },
+            { id: 'unlock_def', name: 'Adv. Life Support', type: 'unlock', cost: 9000, time: 40, desc: 'Unlock Defibrillator', locked: true, key: 'defib', requires: 'medkit' },
+            { id: 'unlock_snif', name: 'Chemo-Detection', type: 'unlock', cost: 11000, time: 45, desc: 'Unlock Gas Sniffer', locked: true, key: 'sniffer', requires: 'sensor' },
+            { id: 'unlock_spray', name: 'Fluid Dynamics', type: 'unlock', cost: 9000, time: 50, desc: 'Unlock Sprayer', locked: true, key: 'sprayer' },
+
+            // Tier 3 Unlocks (Requires Tier 2)
+            { id: 'unlock_lid', name: 'Laser Mapping', type: 'unlock', cost: 25000, time: 75, desc: 'Unlock LIDAR', locked: true, key: 'lidar', requires: 'nightvision' },
+            { id: 'unlock_therm', name: 'Thermal Imaging', type: 'unlock', cost: 40000, time: 100, desc: 'Unlock Thermal', locked: true, key: 'thermal', requires: 'lidar' },
+            { id: 'unlock_winch', name: 'Tac-Winch', type: 'unlock', cost: 15000, time: 60, desc: 'Unlock Winch', locked: true, key: 'winch', requires: 'magnet' },
+            { id: 'unlock_net', name: 'Non-Lethal', type: 'unlock', cost: 18000, time: 65, desc: 'Unlock Net Launcher', locked: true, key: 'net', requires: 'winch' },
+            { id: 'unlock_raft', name: 'Deployable Float', type: 'unlock', cost: 22000, time: 70, desc: 'Unlock Life Raft', locked: true, key: 'raft', requires: 'defib' },
+            { id: 'unlock_seed', name: 'Aerial Sowing', type: 'unlock', cost: 16000, time: 60, desc: 'Unlock Seeder', locked: true, key: 'seeder', requires: 'sprayer' },
+            { id: 'unlock_geiger', name: 'Rad. Shielding', type: 'unlock', cost: 30000, time: 90, desc: 'Unlock Geiger', locked: true, key: 'geiger', requires: 'sniffer' },
+            { id: 'unlock_enc', name: 'Quantum Crypto', type: 'unlock', cost: 50000, time: 120, desc: 'Unlock Encryption', locked: true, key: 'encrypt', requires: 'jammer' },
+
+            // Tier 4 Unlocks (Advanced / Sci-Fi)
+            { id: 'unlock_holo', name: 'Holographic Ads', type: 'unlock', cost: 45000, time: 110, desc: '$$$ Media Contracts', locked: true, key: 'holo_ads', requires: 'gimbal' },
+            { id: 'unlock_swarm', name: 'Swarm AI', type: 'passive', cost: 60000, time: 130, desc: '-20% Build Time', locked: true, key: 'swarm_ai', requires: 'ai_upg' },
+            { id: 'unlock_pax', name: 'Passenger Cabins', type: 'unlock', cost: 75000, time: 150, desc: 'Unlock Pax Cabins', locked: true, key: 'cabin', requires: 'raft' },
+            { id: 'unlock_mars', name: 'Zero-G Prop.', type: 'unlock', cost: 100000, time: 180, desc: 'Unlock Ion Thruster', locked: true, key: 'ion', requires: 'geiger' },
+            { id: 'unlock_fusion', name: 'Fusion Cells', type: 'passive', cost: 120000, time: 200, desc: '+200% Range', locked: true, key: 'fusion', requires: 'bat_upg' }
+        ];
+
+        const CLIENTS = {
+            gov: ["Dept of Interior", "Forestry", "Coast Guard", "EPA", "Gobierno de Mexico", "Estado de México", "PEMEX", "Estado de Aguascalientes", "Estado de Guanajuato", "Estado de Yucatan", "Estado de Mexico", "Ciudad de Mexico", "INEGI", "CONEVAL"],
+            police: ["NYPD", "LAPD", "SWAT", "Border Patrol", "Secretaría de Seguridad Pública", "Policia Municipal de Aguascalientes", "CISEN", "Policia Municipal de Guanajuato", "Policia Estatal de Nuevo Leon", "Guardia Nacional", "Policia Estatal de Chihuahua", "Policia Municipal de Queretaro", "Policia Municipal de San Luis Potosi", "Policia Municipal de Zacatecas"],
+            logistics: ["FedEx", "DHL", "Estafeta", "UPS", "Maersk", "Amazon", "Mercado Libre", "Walmart", "Best Buy", "Target", "Costco", "RadioShack", "HEB", "Chedraui"],
+            media: ["ESPN", "NatGeo", "BBC", "CNN", "TELEVISA", "FOX", "NETFLIX", "HBO", "ESPN+", "Hulu", "Amazon Prime", "Warner Brothers", "Estudios Churubusco", "Liga MX", "FIFA", "Formula 1", "Corporativo de Telecom", "Grupo Carso"],
+            agri: ["Monsanto", "Cargill", "John Deere", "Bayer", "Syngenta", "DuPont", "Corteva", "ADM", "Bayer", "Syngenta", "DuPont", "Corteva", "ADM", "Monsanto", "Cargill", "John Deere"],
+            military: ["DARPA", "Army", "Navy", "Lockheed", "SEDENA", "MARINA", "NSA", "NASA", "UNAM", "AEA"],
+            retail_small: ["Local Hobby", "Tech Shack", "Gadget Corner", "Mom's Electronics", "Drone Zone"],
+            retail_big: ["Walmart", "Best Buy", "Target", "Costco", "RadioShack", "HEB", "Chedraui", "Uber", "Rappi", "Didi", "Soriana", "Liverpool", "Carrefour", "OXXO"]
+        };
+
+        const SUPPLIERS = [
+            { id: 'sup_met_1', type: 'metal', name: 'Deep Earth Minerals', loc: 'Global', dist: 'global', maxStock: 500, baseMod: 1.0 },
+            { id: 'sup_met_2', type: 'metal', name: 'Scrap Kings', loc: 'Local Junkyard', dist: 'local', maxStock: 100, baseMod: 0.85 },
+            { id: 'sup_met_3', type: 'metal', name: 'Orbital Mining', loc: 'Low Orbit', dist: 'global', maxStock: 800, baseMod: 1.3 },
+            { id: 'sup_pol_1', type: 'poly', name: 'Syntho-Chem', loc: 'Germany', dist: 'national', maxStock: 400, baseMod: 1.1 },
+            { id: 'sup_pol_2', type: 'poly', name: 'Plasticos de Mex', loc: 'Mexico', dist: 'national', maxStock: 300, baseMod: 0.9 },
+            { id: 'sup_mot_1', type: 'motor', name: 'Rotors R Us', loc: 'Shenzhen', dist: 'global', maxStock: 200, baseMod: 0.9 },
+            { id: 'sup_mot_2', type: 'motor', name: 'Precision Drive', loc: 'Zurich', dist: 'national', maxStock: 150, baseMod: 1.4 },
+            { id: 'sup_chi_1', type: 'chip', name: 'Silicon Vly', loc: 'California', dist: 'national', maxStock: 100, baseMod: 1.2 },
+            { id: 'sup_chi_2', type: 'chip', name: 'Taiwan Semi', loc: 'Hsinchu', dist: 'global', maxStock: 300, baseMod: 1.0 }
+        ];
+
+        const CERTIFICATIONS = [
+            { id: 'civil', name: 'Civil Aviation', cost: 0, reqRep: 0, reqRel: 0, desc: "Basic license for hobbyist and civilian drones." },
+            { id: 'commercial', name: 'Commercial Grade', cost: 50000, reqRep: 10, reqRel: 70, desc: "Required for major retail contracts." },
+            { id: 'police', name: 'Law Enforcement', cost: 150000, reqRep: 30, reqRel: 95, desc: "Clearance for police surveillance and SAR ops." },
+            { id: 'military', name: 'Military Spec', cost: 500000, reqRep: 60, reqRel: 98, desc: "Top-level clearance for defense contracts." }
+        ];
+
+        const EVENTS = [
+            { id: 'mining_strike', title: "Mining Strikes", type: 'news', desc: "Global metal miners go on strike demanding better safety.", duration: 3, effect: { supply_lock: ['metal'], price_mod: { metal: 1.5, motor: 1.2 } } },
+            { id: 'chip_shortage', title: "Chip Shortage", type: 'news', desc: "Factory fire in Taiwan disrupts semiconductor supply.", duration: 4, effect: { supply_lock: ['chip'], price_mod: { chip: 2.0 } } },
+            { id: 'trade_war', title: "Trade War", type: 'news', desc: "International tariffs hit high-tech imports.", duration: 5, effect: { price_mod: { chip: 1.5, motor: 1.5, poly: 1.3 } } },
+            { id: 'global_war', title: "Global War", type: 'news', desc: "Global war disrupts supply chains.", duration: 24, effect: { price_mod: { chip: 3, motor: 2.3, poly: 2.1 } } },
+            { id: 'lithium_find', title: "Lithium Discovery", type: 'news', desc: "Massive lithium deposits found! Battery costs drop.", duration: 6, effect: { price_mod: { metal: 0.8 } } }, // Simplifying battery to metal correlation
+            { id: 'tech_boom', title: "Tech Sector Boom", type: 'news', desc: "High demand for semiconductors.", duration: 5, effect: { price_mod: { chip: 1.4 } } },
+            { id: 'plastic_glut', title: "Plastic Surplus", type: 'news', desc: "Recycling breakthrough floods market with polymers.", duration: 4, effect: { price_mod: { poly: 0.6 } } },
+            { id: 'motor_dump', title: "Competitor Bankruptcy", type: 'news', desc: "Bankrupt rival liquidates motor inventory.", duration: 3, effect: { price_mod: { motor: 0.7 } } },
+            { id: 'ai_regs', title: "AI Regulations", type: 'news', desc: "Strict AI laws increase development costs.", duration: 8, effect: { price_mod: { chip: 1.2 } } }, // Abstracted effect
+            { id: 'tech_boom', title: "Tech Boom", type: 'tweet', desc: "@TechTrendz: Drone stocks are soaring! Demand is up! 📈 #drones #investing", duration: 3, effect: { demand_mod: 1.5 } },
+            { id: 'reg_crackdown', title: "Regulations", type: 'news', desc: "New airspace regulations grounding non-certified drones.", duration: 4, effect: { demand_mod: 0.5 } },
+            { id: 'oil_crash', title: "Oil Crash", type: 'news', desc: "Polymer prices drop as oil hits record lows.", duration: 3, effect: { price_mod: { poly: 0.6 } } }
+        ];
+
+        class Game {
+            constructor() {
+                this.month = 1; this.monthDuration = 180; this.timer = 0;
+                this.cash = 0; this.reputation = 0;
+
+                this.res = { metal: 50, poly: 50, motor: 50, chip: 50 };
+                Object.keys(ACCESSORIES).forEach(k => this.res[k] = 0);
+                this.maxMats = 200;
+                this.basePrices = { metal: 15, poly: 40, motor: 120, chip: 600 };
+                this.currentPrices = {};
+                this.supplierPrices = {};
+                this.supplierStock = {};
+                this.deliveries = [];
+                this.inventory = []; this.maxStorage = 20;
+                this.factoryLevel = 1;
+
+                this.activeResearch = null;
+                this.buildJob = null;
+                this.infraJob = null; // { type, duration, startTime }
+
+                this.passives = { battery: 1.0, frame: 0, ai: 0 };
+                this.unlockedModules = [];
+                this.design = {};
+                this.design = {};
+                this.savedDesigns = []; this.activeContracts = [];
+                this.loopId = null;
+
+                // Admin & Finance
+                this.loans = [];
+                this.redMonths = 0;
+                this.loanOffer = null;
+                this.employees = { silo: 2, warehouse: 3, factory: 10, rd: 3 }; // Added RD
+                this.certifications = ['civil'];
+                this.activeMandate = null; // { target: 95, deadline: timestamp, active: true }
+
+                this.rdLevel = 1;
+
+                this.monthlyRevenue = 0;
+                this.rdLevel = 1;
+                this.monthlyRevenue = 0;
+                this.lastMonthBill = { salaries: 0, taxes: 0, energy: 0, supplies: 0, loanPayment: 0, total: 0 };
+
+                // Sales Stats
+                this.salesHistory = {}; // { "Model Name": qty }
+                this.totalSales = 0;
+                this.monthlyHistory = []; // { month, revenue, units }
+                this.currentMonthUnits = 0;
+
+                // News Feed & Events
+                this.activeEvents = []; // { id, title, type, desc, duration, effect, timeLeft }
+                this.feedHistory = []; // { title, type, desc, time }
+
+                // Pause State
+                this.isPaused = false;
+                this.pauseStart = 0;
+            }
+
+            // ... (rest of Game class)
+
+            // Add Render Method for Certs
+            renderCertifications() {
+                const div = document.getElementById('cert-list');
+                if (!div) return;
+                div.innerHTML = '';
+
+                // Calculate current reliability from design
+                const currentRel = this.design.reliability || 0;
+
+                CERTIFICATIONS.forEach(c => {
+                    const owned = this.certifications.includes(c.id);
+                    let status = "";
+                    let btn = "";
+
+                    if (owned) {
+                        status = `<span style="color:#2ea043">ACQUIRED</span>`;
+                        btn = `<button class="btn-small" disabled>OWNED</button>`;
+                    } else {
+                        // Check reqs
+                        const repOk = this.reputation >= c.reqRep;
+                        const relOk = currentRel >= c.reqRel;
+                        const cashOk = this.cash >= c.cost;
+
+                        let reqs = [];
+                        if (!repOk) reqs.push(`Rep ${c.reqRep}`);
+                        if (!relOk) reqs.push(`Reliability ${c.reqRel}%`);
+
+                        if (reqs.length > 0) {
+                            status = `<span style="color:#da3633">LOCKED (${reqs.join(', ')})</span>`;
+                            btn = `<button class="btn-small" disabled>LOCKED</button>`;
+                        } else {
+                            status = `<span style="color:#eac54f">AVAILABLE</span>`;
+                            btn = `<button class="btn-small" onclick="game.buyCertification('${c.id}')">BUY ($${c.cost.toLocaleString()})</button>`;
+                        }
+                    }
+
+                    const card = document.createElement('div');
+                    card.style.border = "1px solid #30363d";
+                    card.style.padding = "10px";
+                    card.style.marginBottom = "10px";
+                    card.style.borderRadius = "6px";
+                    card.style.background = "#0d1117";
+
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <strong style="color:white; font-size:1rem;">${c.name}</strong>
+                            ${status}
+                        </div>
+                        <div style="font-size:0.8rem; color:#8b949e; margin-bottom:10px;">${c.desc}</div>
+                        ${btn}
+                    `;
+                    div.appendChild(card);
+                });
+            }
+
+            buyCertification(id) {
+                const cert = CERTIFICATIONS.find(c => c.id === id);
+                if (this.certifications.includes(id)) return;
+
+                if (this.cash >= cert.cost && this.reputation >= cert.reqRep && this.design.reliability >= cert.reqRel) {
+                    this.cash -= cert.cost;
+                    this.certifications.push(id);
+                    this.log(`Certification Acquired: ${cert.name}`, "success");
+                    this.updateUI();
+                } else {
+                    this.log("Requirements not met for certification.", "warn");
+                }
+            }
+
+            start() {
+                const name = document.getElementById('company-name-input').value || "Drone Corp";
+                const diff = ui.selectedDiff;
+                const freq = ui.selectedFreq;
+                document.getElementById('display-company-name').innerText = name;
+
+                if (diff === 'easy') this.cash = 5000000;
+                else if (diff === 'medium') this.cash = 250000;
+                else this.cash = 50000;
+
+                if (freq === 'chaos') this.chaosMode = true;
+                else this.chaosMode = false;
+
+                this.res.metal = 50; this.res.poly = 50; this.res.motor = 50; this.res.chip = 50;
+                document.getElementById('start-screen').style.display = 'none';
+                document.getElementById('game-container').classList.add('active');
+
+                this.randomizePrices();
+                this.renderTechTree();
+                this.generateContracts();
+                this.updateDesign();
+                this.updateUI();
+                this.loopId = setInterval(() => this.tick(), 1000);
+                this.log(`System Online. Mode: ${diff.toUpperCase()} | Entropy: ${freq.toUpperCase()}`, "success");
+            }
+
+            tick() {
+                this.timer++;
+                document.getElementById('time-bar').style.width = (this.timer / this.monthDuration * 100) + '%';
+
+                // Random Events & Reviews
+                if (!this.isPaused) {
+                    const eventChance = this.chaosMode ? 0.02 : 0.002; // Chaos: ~3/mo, Normal: ~0.3/mo
+                    if (Math.random() < eventChance) {
+                        const pool = EVENTS.filter(e => !this.activeEvents.some(a => a.id === e.id));
+                        if (pool.length > 0) {
+                            const evt = pool[Math.floor(Math.random() * pool.length)];
+                            this.triggerEvent(evt);
+                        }
+                    }
+                    if (Math.random() < 0.06) { // 6% chance per tick (~every 16s)
+                        this.triggerCustomerReview();
+                    }
+                }
+
+                if (this.activeResearch) {
+                    const elapsed = (Date.now() - this.activeResearch.startTime) / 1000;
+                    const pct = Math.min(100, (elapsed / this.activeResearch.duration) * 100);
+                    document.getElementById('research-bar-fill').style.width = pct + '%';
+                    if (elapsed >= this.activeResearch.duration) {
+                        this.completeResearch();
+                    }
+                }
+
+                this.checkRegulations();
+
+                if (this.buildJob) {
+                    const elapsed = (Date.now() - this.buildJob.startTime) / 1000;
+                    const pct = Math.min(100, (elapsed / this.buildJob.duration) * 100);
+                    document.getElementById('build-bar-fill').style.width = pct + '%';
+                    if (elapsed >= this.buildJob.duration) this.finalizeBatch();
+                }
+
+                if (this.infraJob) {
+                    const elapsed = (Date.now() - this.infraJob.startTime) / 1000;
+                    const pct = Math.min(100, (elapsed / this.infraJob.duration) * 100);
+                    document.getElementById('infra-bar-fill').style.width = pct + '%';
+                    if (elapsed >= this.infraJob.duration) this.finalizeInfrastructure();
+                }
+
+                if (this.timer >= this.monthDuration) {
+                    this.nextMonth();
+                }
+
+                // Process Deliveries
+                this.deliveries.forEach((d, i) => {
+                    d.timeLeft -= 1;
+                });
+                // Complete finished deliveries
+                const finished = this.deliveries.filter(d => d.timeLeft <= 0);
+                if (finished.length > 0) {
+                    finished.forEach(d => {
+                        this.res[d.type] += d.qty;
+                        this.log(`Delivery Arrived: ${d.qty}x ${d.type}`, "success");
+                    });
+                    this.deliveries = this.deliveries.filter(d => d.timeLeft > 0);
+                    this.updateUI();
+                } else if (this.deliveries.length > 0) {
+                    this.renderRawMarket();
+                }
+            }
+
+            skipMonth() {
+                this.log("Skipping month...", "warn");
+                this.nextMonth();
+            }
+
+            nextMonth() {
+                // Process Finances
+                const bill = this.calculateExpenses();
+                this.lastMonthBill = bill;
+                this.cash -= bill.total;
+
+                // Process Loan Installments
+                this.loans.forEach(l => {
+                    if (l.monthlyPayment) {
+                        l.amount -= l.monthlyPayment;
+                        l.remainingMonths--;
+                    }
+                });
+                // Remove paid off loans
+                const paidLoans = this.loans.filter(l => l.remainingMonths <= 0);
+                if (paidLoans.length > 0) {
+                    paidLoans.forEach(l => this.log(`Loan fully repaid!`, "success"));
+                }
+                this.loans = this.loans.filter(l => l.remainingMonths > 0);
+
+                this.month++;
+                this.log(`Month ${this.month} started. Expenses: $${bill.total.toLocaleString()} (Loans: $${bill.loanPayment.toLocaleString()})`, "info");
+
+                // Financial Health Check
+                if (this.cash < 0) {
+                    this.redMonths++;
+                    if (this.redMonths >= 3) {
+                        alert("GAME OVER\n\nYour company has been insolvent for 3 consecutive months.");
+                        location.reload();
+                        return;
+                    }
+                    this.triggerLoanOffer();
+                } else {
+                    this.redMonths = 0;
+                }
+
+                // Event System
+                this.updateEvents();
+                // Handled in tick() with chaos mode logic
+
+                // Save Monthly Sales History
+                this.monthlyHistory.push({
+                    month: this.month,
+                    revenue: this.monthlyRevenue,
+                    units: this.currentMonthUnits
+                });
+                if (this.monthlyHistory.length > 6) this.monthlyHistory.shift(); // Keep last 6
+
+                this.monthlyRevenue = 0; // Reset for new month
+                this.currentMonthUnits = 0;
+                this.timer = 0;
+                this.randomizePrices(); this.generateContracts(); this.updateUI();
+            }
+
+            // --- Bank System ---
+            getBankTerms() {
+                // Rate: 50% base, -5% per 5 rep, min 5%
+                const discount = Math.floor(this.reputation / 5) * 5;
+                const rate = Math.max(5, 50 - discount);
+
+                // Limit: 10x experience (Monthly Revenue), min $10k
+                // Use last month's revenue if current month is 0, or estimate based on cash flow history if needed.
+                // For simplicity, we use a calculated potential based on reputation + factory output approx 
+                const baseVal = Math.max(10000, this.totalSales * 50); // Fallback: Sales * $50
+                const flowVal = (this.lastMonthBill.loanPayment + this.lastMonthBill.total) * 12; // Valuation by expenses capacity
+                const limit = Math.max(10000, Math.floor(this.cash * 0.5) + (this.totalSales * 100));
+                // Let's use the requested "10 times experience" interpretation:
+                // We'll interpret experience as "Total Units Sold" or "Reputation * 1000" or similar.
+                // Let's stick to Revenue Scaling as it's safer.
+                // REVISION: "10 times the experience" -> Let's interpret "Experience" as Reputation Points * 1000? 
+                // Or maybe Total Lifetime Sales Revenue?
+                // Let's use: Base $10k + (Rep * $1000). Max cap 1M.
+                const creditLimit = 10000 + (this.reputation * 2000);
+
+                return { rate, limit: creditLimit };
+            }
+
+            openBankModal() {
+                if (this.loans.some(l => l.type === 'bank')) {
+                    alert("BANK POLICY: Only one active bank loan allowed at a time. Please repay your existing loan first.");
+                    return;
+                }
+                const terms = this.getBankTerms();
+                document.getElementById('bank-company-name').innerText = document.getElementById('company-name-input').value || "CEO";
+                document.getElementById('bank-rep').innerText = this.reputation;
+                document.getElementById('bank-rate').innerText = terms.rate + "%";
+                document.getElementById('bank-limit').innerText = "$" + terms.limit.toLocaleString();
+
+                const input = document.getElementById('bank-input');
+                input.max = terms.limit;
+                input.value = Math.min(input.value, terms.limit);
+
+                this.updateBankUI();
+                document.getElementById('bank-modal').style.display = 'flex';
+            }
+
+            updateBankUI() {
+                const terms = this.getBankTerms();
+                const amount = parseInt(document.getElementById('bank-input').value);
+                const totalPay = Math.floor(amount * (1 + (terms.rate / 100)));
+                const monthly = Math.ceil(totalPay / 12);
+
+                document.getElementById('bank-val').innerText = "$" + amount.toLocaleString();
+                document.getElementById('bank-get').innerText = "$" + amount.toLocaleString();
+                document.getElementById('bank-pay').innerText = "$" + totalPay.toLocaleString();
+                document.getElementById('bank-monthly').innerText = "$" + monthly.toLocaleString() + "/mo";
+            }
+
+            checkRegulations() {
+                // Check for existing mandate
+                if (this.activeMandate) {
+                    if (Date.now() > this.activeMandate.deadline) {
+                        // Time's up
+                        if (this.design.reliability >= this.activeMandate.target) {
+                            this.log(`REGULATION: Reliability Check Passed! Certification retained.`, "success");
+                            this.reputation += 5;
+                            this.activeMandate = null;
+                        } else {
+                            this.log(`REGULATION: FAILED! License Revoked. Heavy Fine.`, "crisis");
+                            this.cash -= 200000;
+                            this.reputation -= 20;
+                            // Remove the affected cert
+                            const idx = this.certifications.indexOf(this.activeMandate.cert);
+                            if (idx > -1) this.certifications.splice(idx, 1);
+                            this.activeMandate = null;
+                            this.updateUI();
+                        }
+                    }
+                    return;
+                }
+
+                // Check if we need to issue a new mandate
+                // Only if holding high tier certs
+                const hasMil = this.certifications.includes('military');
+                const hasPol = this.certifications.includes('police');
+                const rel = this.design.reliability || 0;
+
+                if (hasMil && rel < 98) {
+                    if (Math.random() < 0.02) this.triggerMandate('military', 98);
+                } else if (hasPol && rel < 95) {
+                    if (Math.random() < 0.02) this.triggerMandate('police', 95);
+                }
+            }
+
+            triggerMandate(certId, target) {
+                // Deadline approx 45s (3 game months)
+                this.activeMandate = {
+                    cert: certId,
+                    target: target,
+                    deadline: Date.now() + 45000,
+                    active: true
+                };
+
+                this.addToFeed({
+                    title: "REGULATION WARNING",
+                    type: "crisis",
+                    desc: `Gov audit incoming! reliability is below ${target}%. Fix it within 3 months or lose your ${certId.toUpperCase()} license!`
+                });
+            }
+
+            acceptBankLoan() {
+                const terms = this.getBankTerms();
+                const amount = parseInt(document.getElementById('bank-input').value);
+                const totalPay = Math.floor(amount * (1 + (terms.rate / 100)));
+                const monthly = Math.ceil(totalPay / 12);
+
+                this.cash += amount;
+                this.loans.push({
+                    id: Date.now(),
+                    type: 'bank',
+                    amount: totalPay,
+                    orig: amount,
+                    monthlyPayment: monthly,
+                    remainingMonths: 12
+                });
+
+                this.log(`Bank Loan Approved: +$${amount.toLocaleString()} (${terms.rate}% Interest)`, "success");
+                document.getElementById('bank-modal').style.display = 'none';
+                this.updateUI();
+            }
+
+            triggerCustomerReview() {
+                const stats = this.design;
+                const companyName = document.getElementById('display-company-name').innerText.replace(/\s+/g, '');
+                const tag = `<span style="color:#a371f7">@${companyName}</span>`;
+
+                let msgs = [];
+
+                // --- Conditional Reviews (Stats) ---
+                if (stats.reliability < 70) msgs.push(`${tag} Drone fell out of the sky. 1 Star.`);
+                if (stats.reliability > 95) msgs.push(`${tag} Rock solid performance. Trusting my packages to them.`);
+                if (stats.speed > 160) msgs.push(`Whoa, did you see that ${tag} drone? Blink and you miss it.`);
+                if (stats.range < 50) msgs.push(`${tag} battery died halfway to my house. Refund!`);
+                if (stats.stealth > 10) msgs.push(`Is ${tag} spying on us? I can't even hear their drones.`);
+                if (stats.cost > 2000) msgs.push(`${tag} is for the rich. Way too expensive.`);
+                if (stats.cost < 800) msgs.push(`${tag} is democratizing the skies! So cheap!`);
+                if (this.reputation > 50) msgs.push(`${tag} is taking over the market. They are everywhere.`);
+
+                // --- Generic World Chatter / Speculation ---
+                const randomThoughts = [
+                    `${tag} stocks are looking bullish today. 📈`,
+                    `Hearing rumors that ${tag} is working on military tech...`,
+                    `Why walk when ${tag} can deliver it?`,
+                    `My cat is still terrified of the new ${tag} models.`,
+                    `Are ${tag} drones waterproof? Asking for a friend.`,
+                    `Imagine if ${tag} made a passenger drone...`,
+                    `I applied for a job at ${tag}, wish me luck!`,
+                    `Big Tech is watching. ${tag} sees all. 👁️`,
+                    `Just saw a swarm of ${tag} drones downtown. Cyberpunk vibes.`,
+                    `${tag} > The competition. Don't @ me.`,
+                    `Breaking: ${tag} facing new regulatory hurdles? just a rumor.`,
+                    `Can ${tag} deliver coffee? It's an emergency. ☕`,
+                    `The new firmware update from ${tag} is smooth regarding flight stability.`,
+                    `Invest in ${tag} now, thank me later.`,
+                    `I bet ${tag} is secretly run by an AI.`,
+                    `Does anyone else check flight paths before leaving home? thanks ${tag}.`,
+                    `Saw a ${tag} drone racing a pigeon today. The pigeon won.`,
+                    `My neighbor bought three ${tag} drones. Why??`,
+                    `Drone delivery is the future, and the future is loud.`,
+                    `Just read the ${tag} user manual. It's surprisingly funny.`,
+                    `Rumor: ${tag} is buying up lithium mines in Nevada.`,
+                    `I hacked my ${tag} drone to play music. Voided the warranty though.`,
+                    `The sky is officially cluttered. Thanks ${tag}.`,
+                    `Anyone know if ${tag} is hiring engineers?`,
+                    `I miss the days when the sky was empty.`,
+                    `My ${tag} drone just... hovered there for 20 minutes. Zoning out?`,
+                    `Waiting for the ${tag} Pro Max Ultra model.`,
+                    `Crypto is down, but ${tag} is up. Safe haven?`,
+                    `Is it true ${tag} drones can see through walls?`,
+                    `Local laws can't stop ${tag}.`,
+                    `I saw a ${tag} drone carrying a smaller drone. Droneception.`,
+                    `Estoy enamorado de que ${tag} empieze a vender drones en Guatemala!. #Genial`,
+                    `The ${tag} app just asked for my blood type. Normal?`,
+                    `Mars colony when? @${tag} take us there!`,
+                    `My dog barked at a ${tag} drone and it barked back...`,
+                    `Just saw a ${tag} swarm form a giant smiley face. Marketing budget well spent.`,
+                    `If ${tag} lowers prices, I'm buying the whole stock.`,
+                    `Is ${tag} single-handedly solving the climate crisis? Or causing it?`,
+                    `I wish ${tag} made cars. Or spaceships.`,
+                    `Getting married soon, hope ${tag} can wrap the venue in drones.`,
+                    `Does ${tag} accept crypto?`,
+                    `I heard ${tag} is collaborating with the military on 'Project X'.`
+                ];
+
+                // Prioritize chatter if sales are low, otherwise mix
+                if (this.totalSales < 20 || Math.random() > 0.4) {
+                    msgs = msgs.concat(randomThoughts);
+                }
+
+                if (msgs.length > 0) {
+                    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+                    this.addToFeed({ title: "Social", type: "chat", desc: msg });
+                }
+            }
+
+            triggerLoanOffer() {
+                let get = 0, pay = 0, text = "";
+
+                if (this.month <= 12) {
+                    get = 10000; pay = 15000;
+                    text = "As a new startup (< 1 year), investors are cautious.";
+                } else if (this.month <= 60) { // 1-5 years
+                    get = 25000; pay = 35000;
+                    text = "Your established history allows for larger credit.";
+                } else if (this.month <= 120) { // 5-10 years
+                    get = 50000; pay = 60000;
+                    text = "High-tier corporate financing available.";
+                } else { // > 10 years
+                    get = 50000; pay = 55000;
+                    text = "Premium veteran status grants better rates.";
+                }
+
+                this.loanOffer = { get, pay, months: 0 }; // Repayment logic could track time, currently flat fee
+
+                document.getElementById('debt-strikes').innerText = this.redMonths;
+                document.getElementById('loan-offer-text').innerText = text;
+                document.getElementById('loan-get').innerText = "$" + get.toLocaleString();
+                document.getElementById('loan-pay').innerText = "$" + pay.toLocaleString();
+                document.getElementById('loan-modal').style.display = 'flex';
+            }
+
+            acceptLoan() {
+                if (!this.loanOffer) return;
+                this.cash += this.loanOffer.get;
+
+                const totalPay = this.loanOffer.pay;
+                const monthly = Math.ceil(totalPay / 12);
+
+                this.loans.push({
+                    id: Date.now(),
+                    amount: totalPay, // Owed
+                    orig: this.loanOffer.get,
+                    monthlyPayment: monthly,
+                    remainingMonths: 12
+                });
+                this.log(`Loan Accepted: +$${this.loanOffer.get.toLocaleString()} (${monthly.toLocaleString()}/mo x 12).`, "warning");
+                document.getElementById('loan-modal').style.display = 'none';
+                this.updateUI();
+            }
+
+            repayLoan(id) {
+                const idx = this.loans.findIndex(l => l.id === id);
+                if (idx === -1) return;
+                const loan = this.loans[idx];
+
+                if (this.cash >= loan.amount) {
+                    this.cash -= loan.amount;
+                    this.loans.splice(idx, 1);
+                    this.log(`Repaid loan of $${loan.amount.toLocaleString()}`, "success");
+                    this.updateUI();
+                } else {
+                    this.log("Insufficient funds to repay loan!", "warn");
+                }
+            }
+
+            // --- Tech ---
+            renderTechTree() {
+                const div = document.getElementById('tech-list');
+                div.innerHTML = '';
+                TECH_DB.forEach(t => {
+                    let btnText = "Research";
+                    let disabled = "";
+                    let cls = "btn-small";
+                    let info = "";
+
+                    // Check Dependencies
+                    if (t.requires) {
+                        const hasReq = this.unlockedModules.includes(t.requires);
+                        const reqName = ACCESSORIES[t.requires] ? ACCESSORIES[t.requires].name : t.requires;
+                        if (!hasReq) {
+                            disabled = "disabled";
+                            info = `<div style="color:#da3633; font-size:0.75rem;">Requires: ${reqName}</div>`;
+                        }
+                    }
+
+                    if (this.activeResearch && disabled === "") { disabled = "disabled"; }
+
+                    if (t.type === 'unlock' && !t.locked) {
+                        btnText = "UNLOCKED"; disabled = "disabled"; cls += " btn-market";
+                    } else if (t.type === 'passive') {
+                        btnText = `Upgrade (Lvl ${t.level})`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'tech-card';
+                    card.innerHTML = `
+                        <h4>${t.name}</h4>
+                        <div class="tech-meta">${t.desc}</div>
+                        ${info}
+                        <div class="tech-meta">Cost: $${t.cost} | Time: ${t.time}s</div>
+                        <button class="${cls}" ${disabled} onclick="game.startResearch('${t.id}')">${btnText}</button>
+                    `;
+                    div.appendChild(card);
+                });
+            }
+
+            startResearch(id) {
+                const tech = TECH_DB.find(t => t.id === id);
+                if (this.cash < tech.cost) { this.log("Insufficient Funds", "warn"); return; }
+                this.cash -= tech.cost;
+
+                // R&D Speed Logic
+                // Base 0.75 + (0.25 * (Lvl-1)) -> Lvl 1 = 0.75x, Lvl 2 = 1.0x, Lvl 3 = 1.25x
+                const speedMult = 0.75 + ((this.rdLevel - 1) * 0.25);
+                const realTime = tech.time / speedMult;
+
+                this.activeResearch = { id: id, startTime: Date.now(), duration: realTime };
+                document.getElementById('research-text').innerText = `R&D: ${tech.name}`;
+                this.renderTechTree(); this.updateUI();
+            }
+
+            completeResearch() {
+                const id = this.activeResearch.id;
+                const tech = TECH_DB.find(t => t.id === id);
+                if (tech.type === 'passive') {
+                    tech.level++; tech.cost = Math.floor(tech.cost * 1.5);
+                    if (id === 'bat_upg') this.passives.battery += 0.2;
+                    if (id === 'frm_upg') this.passives.frame += 5;
+                    if (id === 'ai_upg') this.passives.ai += 5;
+                } else {
+                    tech.locked = false;
+                    this.unlockedModules.push(tech.key);
+                    const opt = document.getElementById(`opt-${tech.key}`);
+                    if (opt) { opt.disabled = false; opt.text = ACCESSORIES[tech.key].name; }
+                }
+                this.log(`Research Complete: ${tech.name}`, "success");
+                this.activeResearch = null;
+                document.getElementById('research-bar-fill').style.width = '0%';
+                document.getElementById('research-text').innerText = "No Research Active";
+                this.renderTechTree(); this.updateDesign(); this.updateUI();
+            }
+
+            renderAdminTab() {
+                // Employees
+                document.getElementById('emp-silo').innerText = this.employees.silo;
+                document.getElementById('emp-wh').innerText = this.employees.warehouse;
+                document.getElementById('emp-fac').innerText = this.employees.factory;
+                document.getElementById('emp-rd').innerText = this.employees.rd;
+                document.getElementById('emp-total').innerText = this.employees.silo + this.employees.warehouse + this.employees.factory + this.employees.rd;
+
+                // Last Bill
+                document.getElementById('bill-sal').innerText = `-$${this.lastMonthBill.salaries.toLocaleString()}`;
+
+                const utils = this.lastMonthBill.energy + this.lastMonthBill.supplies;
+                document.getElementById('bill-util').innerText = `-$${utils.toLocaleString()}`;
+                document.getElementById('bill-tax').innerText = `-$${this.lastMonthBill.taxes.toLocaleString()}`;
+
+                // Loan Line Item
+                if (document.getElementById('bill-loan')) {
+                    document.getElementById('bill-loan').innerText = `-$${(this.lastMonthBill.loanPayment || 0).toLocaleString()}`;
+                }
+
+                document.getElementById('bill-total').innerText = `-$${this.lastMonthBill.total.toLocaleString()}`;
+
+                // Projections
+                const proj = this.calculateExpenses();
+                document.getElementById('proj-bill').innerText = `$${proj.total.toLocaleString()}`;
+                document.getElementById('cur-rev').innerText = `$${this.monthlyRevenue.toLocaleString()}`;
+
+                // R&D Info Update
+                document.getElementById('rd-lvl-badge').innerText = `LVL ${this.rdLevel}`;
+                document.getElementById('rd-staff-disp').innerText = this.employees.rd;
+                const spd = 0.75 + ((this.rdLevel - 1) * 0.25);
+                document.getElementById('rd-speed-disp').innerText = `${spd.toFixed(2)}x`;
+
+                // Loans
+                const loanList = document.getElementById('loan-list');
+                loanList.innerHTML = '';
+                if (this.loans.length === 0) {
+                    loanList.innerHTML = '<div style="font-size:0.8rem; color:#8b949e; font-style:italic;">No active loans.</div>';
+                } else {
+                    this.loans.forEach(l => {
+                        const div = document.createElement('div');
+                        div.style.marginBottom = '5px';
+                        div.style.padding = '5px';
+                        div.style.border = '1px solid #30363d';
+                        div.style.borderRadius = '3px';
+                        div.style.display = 'flex';
+                        div.style.justifyContent = 'space-between';
+                        div.style.alignItems = 'center';
+
+                        const monthly = l.monthlyPayment ? l.monthlyPayment.toLocaleString() : "0";
+                        const remaining = l.remainingMonths || 0;
+
+                        div.innerHTML = `
+                            <div>
+                                <div style="font-size:0.8rem; color:#da3633; font-weight:bold;">-$${monthly}/mo</div>
+                                <div style="font-size:0.7rem; color:#8b949e;">Remaining: ${remaining} months ($${l.amount.toLocaleString()} total)</div>
+                            </div>
+                        `;
+                        loanList.appendChild(div);
+                    });
+                }
+                if (document.getElementById('debt-strikes-disp'))
+                    document.getElementById('debt-strikes-disp').innerText = this.redMonths;
+
+                // Render Certs
+                this.renderCertifications();
+
+                // Sales Stats & History
+                const salesDiv = document.getElementById('sales-stats');
+                if (salesDiv) {
+                    salesDiv.innerHTML = '';
+
+                    // 1. Chart Canvas
+                    const canvasContainer = document.createElement('div');
+                    canvasContainer.style.background = '#0d1117';
+                    canvasContainer.style.border = '1px solid #30363d';
+                    canvasContainer.style.borderRadius = '4px';
+                    canvasContainer.style.padding = '10px';
+                    canvasContainer.style.marginBottom = '10px';
+                    canvasContainer.innerHTML = '<canvas id="sales-chart" width="350" height="180" style="width:100%; height:auto;"></canvas>';
+                    salesDiv.appendChild(canvasContainer);
+
+                    // 2. History Table
+                    if (this.monthlyHistory.length > 0) {
+                        const histTable = document.createElement('table');
+                        histTable.className = 'spec-table';
+                        histTable.innerHTML = `<tr><th style="color:#8b949e;">Month</th><th style="text-align:right; color:#8b949e;">Rev</th><th style="text-align:right; color:#8b949e;">Units</th></tr>`;
+                        // Show reverse chronological
+                        [...this.monthlyHistory].reverse().forEach(h => {
+                            histTable.innerHTML += `<tr>
+                                <td>Month ${h.month}</td>
+                                <td style="text-align:right; color:#7ee787;">$${h.revenue.toLocaleString()}</td>
+                                <td style="text-align:right; color:#58a6ff;">${h.units}</td>
+                            </tr>`;
+                        });
+                        salesDiv.appendChild(histTable);
+                    } else {
+                        salesDiv.innerHTML += '<div style="color:#8b949e; font-style:italic; padding:10px;">No monthly history yet.</div>';
+                    }
+
+                    // 3. Lifetime Stats by Model
+                    if (this.totalSales > 0) {
+                        const modelDiv = document.createElement('div');
+                        modelDiv.style.marginTop = "15px";
+                        modelDiv.innerHTML = '<h5 style="margin:0 0 5px 0; color:white;">Lifetime Model Sales</h5>';
+                        const table = document.createElement('table');
+                        table.className = 'spec-table';
+                        for (let model in this.salesHistory) {
+                            table.innerHTML += `<tr><td>${model}</td><td style="text-align:right; color:white;">${this.salesHistory[model]}</td></tr>`;
+                        }
+                        table.innerHTML += `<tr style="border-top:1px solid #30363d;"><td style="font-weight:bold; color:white;">TOTAL</td><td style="text-align:right; font-weight:bold; color:#7ee787;">${this.totalSales}</td></tr>`;
+                        modelDiv.appendChild(table);
+                        salesDiv.appendChild(modelDiv);
+                    }
+
+                    // Render Chart
+                    setTimeout(() => this.drawSalesChart(), 0);
+                }
+            }
+
+            drawSalesChart() {
+                const canvas = document.getElementById('sales-chart');
+                if (!canvas || this.monthlyHistory.length < 2) return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width; const h = canvas.height;
+                const pad = 30;
+
+                ctx.clearRect(0, 0, w, h);
+
+                // Data
+                const data = this.monthlyHistory;
+                const maxRev = Math.max(...data.map(d => d.revenue)) || 1000;
+                const maxUnits = Math.max(...data.map(d => d.units)) || 10;
+
+                // Scales
+                const getX = (i) => pad + (i * ((w - pad * 2) / (data.length - 1)));
+                const getYRev = (v) => h - pad - ((v / maxRev) * (h - pad * 2));
+                // const getYUnit = (v) => h - pad - ((v / maxUnits) * (h - pad * 2)); // If we wanted dual axis
+
+                // Draw Axes
+                ctx.beginPath();
+                ctx.strokeStyle = '#30363d';
+                ctx.moveTo(pad, pad); ctx.lineTo(pad, h - pad); ctx.lineTo(w - pad, h - pad);
+                ctx.stroke();
+
+                // Draw Revenue Line (Green)
+                ctx.beginPath();
+                ctx.strokeStyle = '#2ea043';
+                ctx.lineWidth = 2;
+                data.forEach((d, i) => {
+                    const x = getX(i);
+                    const y = getYRev(d.revenue);
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                // Draw Points
+                ctx.fillStyle = '#2ea043';
+                data.forEach((d, i) => {
+                    const x = getX(i);
+                    const y = getYRev(d.revenue);
+                    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+                });
+
+                // Draw Labels
+                ctx.fillStyle = '#8b949e'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+                data.forEach((d, i) => {
+                    ctx.fillText(d.month, getX(i), h - 10);
+                });
+            }
+
+            // --- Supply ---
+            buy(type, supplierId) {
+                let qty = 1;
+                let cost = 0;
+                let stock = 9999;
+                let eta = 0; // seconds
+
+                if (ACCESSORIES[type]) {
+                    try {
+                        let input = document.getElementById(`qty-${type}`);
+                        qty = parseInt(input.value) || 1;
+                    } catch (e) { qty = 1; }
+                    cost = ACCESSORIES[type].price * qty;
+                    eta = 30; // Standard component delivery
+                } else if (supplierId && this.supplierPrices[supplierId]) {
+                    try {
+                        let input = document.getElementById(`qty-${supplierId}`);
+                        qty = parseInt(input.value) || 1;
+                    } catch (e) { qty = 1; }
+                    cost = this.supplierPrices[supplierId] * qty;
+                    stock = this.supplierStock[supplierId];
+                    if (qty > stock) { this.log("Not enough stock!", "warn"); return; }
+
+                    // Calc ETA
+                    const s = SUPPLIERS.find(x => x.id === supplierId);
+
+                    // Check Event Locks
+                    let locked = false;
+                    this.activeEvents.forEach(e => {
+                        if (e.effect && e.effect.supply_lock && e.effect.supply_lock.includes(s.type)) locked = true;
+                    });
+                    if (locked) { this.log(`Cannot buy ${type}! Supply chain disrupted by active event.`, "warn"); return; }
+
+                    if (s.dist === 'local') eta = 10;
+                    else if (s.dist === 'national') eta = 50;
+                    else eta = 60;
+
+                    // Complex items take longer
+                    if (type === 'motor' || type === 'chip') eta = Math.floor(eta * 1.5);
+                    if (type === 'chip' && s.dist === 'global') eta = 100;
+
+                } else {
+                    console.error("Invalid buy call"); return;
+                }
+
+                // Check Silo Space (incoming + current)
+                let totalItems = 0; for (let k in this.res) totalItems += this.res[k];
+                let incomingTotal = this.deliveries.reduce((a, b) => a + b.qty, 0);
+
+                if (totalItems + incomingTotal + qty > this.maxMats) { this.log("Silo limit (incl. inbound) reached!", "warn"); return; }
+
+                if (this.cash >= cost) {
+                    this.cash -= cost;
+                    if (supplierId) this.supplierStock[supplierId] -= qty;
+
+                    this.deliveries.push({ type, qty, timeLeft: eta, initialTime: eta });
+
+                    let source = "Market";
+                    if (supplierId) source = SUPPLIERS.find(s => s.id === supplierId).name;
+                    this.log(`Ordered ${qty} ${type} from ${source}. ETA: ${eta}s`, "info");
+                    this.updateUI();
+                } else this.log("Insufficient Funds", "warn");
+            }
+
+            renderRawMarket() {
+                const container = document.getElementById('raw-market-list');
+                container.innerHTML = '';
+
+                // Render Deliveries
+                if (this.deliveries.length > 0) {
+                    const delDiv = document.createElement('div');
+                    delDiv.style.marginBottom = "15px";
+                    delDiv.style.padding = "5px";
+                    delDiv.style.background = "#0d1117";
+                    delDiv.style.maxHeight = "150px";
+                    delDiv.style.overflowY = "auto";
+                    delDiv.innerHTML = `<div style="font-size:0.75rem; color:#8b949e; border-bottom:1px solid #30363d; margin-bottom:5px; position:sticky; top:0; background:#0d1117; z-index:10;">INCOMING SHIPMENTS</div>`;
+                    this.deliveries.forEach(d => {
+                        const pct = Math.max(0, Math.min(100, ((d.initialTime - d.timeLeft) / d.initialTime) * 100));
+
+                        delDiv.innerHTML += `
+                        <div style="margin-bottom:5px;">
+                            <div style="font-size:0.8rem; display:flex; justify-content:space-between; margin-bottom:2px;">
+                                <span>${d.qty}x ${d.type}</span>
+                                <span style="color:var(--accent-orange); font-size:0.7em;">${Math.ceil(d.timeLeft)}s</span>
+                            </div>
+                            <div style="width:100%; height:4px; background:#30363d; border-radius:2px; overflow:hidden;">
+                                <div style="width:${pct}%; height:100%; background:var(--accent-green); transition:width 1s linear;"></div>
+                            </div>
+                        </div>
+                     `;
+                    });
+                    container.appendChild(delDiv);
+                }
+
+                const groups = { metal: [], poly: [], motor: [], chip: [] };
+                SUPPLIERS.forEach(s => groups[s.type].push(s));
+
+                for (let type in groups) {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.style.marginBottom = "10px";
+                    groupDiv.innerHTML = `<div style="font-size:0.7rem; color:#8b949e; text-transform:uppercase; margin-bottom:4px;">${type} Suppliers</div>`;
+
+                    groups[type].forEach(s => {
+                        const price = this.supplierPrices[s.id];
+                        const stock = this.supplierStock[s.id];
+                        // Calc ETA display
+                        let eta = (s.dist === 'local') ? 10 : (s.dist === 'national') ? 50 : 60;
+                        if (type === 'motor' || type === 'chip') eta = Math.floor(eta * 1.5);
+                        if (type === 'chip' && s.dist === 'global') eta = 100;
+
+                        const btn = document.createElement('div');
+                        btn.className = 'btn-market';
+                        btn.style.flexDirection = 'column';
+                        btn.style.alignItems = 'stretch';
+
+                        btn.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px;">
+                                <div>
+                                    <div style="font-weight:bold; color:white;">${s.name}</div>
+                                    <div style="font-size:0.7em; color:#58a6ff;">${s.loc} (${s.dist})</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div class="price-tag">$${price}</div>
+                                    <div style="font-size:0.75rem; color:#8b949e;">Stock: ${stock}</div>
+                                </div>
+                            </div>
+                            </div>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="qty-${s.id}" min="1" max="${stock}" value="10" 
+                                    style="width:70px; font-family:var(--font-mono); background:#0d1117; border:1px solid #30363d; color:white; padding:4px; border-radius:3px;">
+                                <button class="btn-small" style="background:var(--accent-green); color:black; flex:1;" onclick="game.buy('${type}', '${s.id}')">Buy</button>
+                            </div>
+                            <div style="font-size:0.65rem; color:#8b949e; text-align:right; margin-top:2px;">ETA: ~${eta}s</div>
+                         `;
+                        groupDiv.appendChild(btn);
+                    });
+                    container.appendChild(groupDiv);
+                }
+            }
+
+            renderAccessoryMarket() {
+                const container = document.getElementById('accessory-market');
+                container.innerHTML = '';
+                if (this.unlockedModules.length > 0) {
+                    const header = document.createElement('div');
+                    header.className = 'accessory-header';
+                    header.innerText = "COMPONENTS (UNLOCKED)";
+                    container.appendChild(header);
+                    this.unlockedModules.forEach(key => {
+                        const item = ACCESSORIES[key];
+                        const div = document.createElement('div');
+                        div.className = 'btn-market';
+                        div.style.flexDirection = 'column';
+                        div.style.alignItems = 'stretch';
+                        div.style.cursor = 'default';
+
+                        const owned = this.res[key] || 0;
+                        div.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <div>
+                                    <div style="font-weight:bold; color:white;">${item.name}</div>
+                                    <div style="font-size:0.7em; color:#8b949e;">$${item.price} ea</div>
+                                </div>
+                                <div style="font-size:0.75rem; color:#8b949e;">Own: ${owned}</div>
+                            </div>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="qty-${key}" min="1" value="1" 
+                                    style="width:60px; font-family:var(--font-mono); background:#0d1117; border:1px solid #30363d; color:white; padding:4px; border-radius:3px;">
+                                <button class="btn-small" style="background:var(--accent-blue); color:black; flex:1;" onclick="game.buy('${key}')">Buy</button>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            }
+
+            renderSiloInventory() {
+                try {
+                    const list = document.getElementById('silo-inventory-list');
+                    if (!list) return;
+
+                    let html = '';
+                    let totalItems = 0;
+
+                    // 1. Raw Materials
+                    const raw = ['metal', 'poly', 'motor', 'chip'];
+                    raw.forEach(key => {
+                        const qty = this.res[key] || 0;
+                        totalItems += qty;
+
+                        let name = key.charAt(0).toUpperCase() + key.slice(1);
+                        if (key === 'poly') name = 'Polymers';
+                        if (key === 'motor') name = 'Motors';
+
+                        html += `<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #21262d; font-size:0.85rem; color:#c9d1d9;">` +
+                            `<span>${name}</span><span style="font-family:monospace; color:white;">${qty}</span></div>`;
+                    });
+
+                    // 2. Accessories
+                    if (typeof ACCESSORIES !== 'undefined') {
+                        Object.keys(ACCESSORIES).forEach(key => {
+                            const qty = this.res[key] || 0;
+                            const isUnlocked = this.unlockedModules ? this.unlockedModules.includes(key) : false;
+
+                            if (isUnlocked || qty > 0) {
+                                totalItems += qty;
+                                const acc = ACCESSORIES[key];
+                                html += `<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #21262d; font-size:0.85rem; color:#79c0ff;">` +
+                                    `<span>${acc.name}</span><span style="font-family:monospace; color:white;">${qty}</span></div>`;
+                            }
+                        });
+                    }
+
+                    list.innerHTML = html;
+
+                    // Update Capacity Display
+                    const capDisp = document.getElementById('mat-storage-disp');
+                    if (capDisp) {
+                        capDisp.innerText = `${totalItems}/${this.maxMats}`;
+                        capDisp.style.color = (totalItems >= this.maxMats) ? '#da3633' : 'white';
+                    }
+                } catch (e) {
+                    console.error("Error rendering inventory:", e);
+                }
+            }
+
+            // --- Infrastructure Upgrades ---
+            upgradeInfrastructure(type) {
+                if (this.infraJob) return; // Busy
+                let cost, dur;
+
+                if (type === 'silo') { cost = 2000; dur = 20; }
+                else if (type === 'warehouse') { cost = 2500; dur = 20; }
+                else if (type === 'factory') { cost = 10000; dur = 60; }
+
+                if (this.cash >= cost) {
+                    this.cash -= cost;
+                    this.infraJob = { type, duration: dur, startTime: Date.now() };
+                    document.getElementById('infra-text').innerText = `Constructing: ${type.toUpperCase()}`;
+                    this.log(`Started expansion: ${type}`, "info");
+                    this.updateUI();
+                } else {
+                    this.log("Insufficient Funds", "warn");
+                }
+            }
+
+            finalizeInfrastructure() {
+                const type = this.infraJob.type;
+                if (type === 'silo') this.maxMats += 100;
+                if (type === 'warehouse') this.maxStorage += 20;
+                if (type === 'factory') this.factoryLevel++;
+
+                this.log(`${type.toUpperCase()} expansion complete!`, "success");
+                this.infraJob = null;
+                document.getElementById('infra-bar-fill').style.width = '0%';
+                document.getElementById('infra-text').innerText = "Infrastructure Idle";
+                this.updateUI();
+            }
+
+            // --- Design ---
+            updateDesign() {
+                const eng = parseInt(document.getElementById('slider-engine').value);
+                const bat = parseInt(document.getElementById('slider-battery').value);
+                const frm = parseInt(document.getElementById('slider-frame').value);
+                const ai = parseInt(document.getElementById('slider-ai').value);
+                const acc1 = document.getElementById('select-accessory').value;
+
+                // Get Acc2 if available
+                let acc2 = 'none';
+                const acc2Select = document.getElementById('select-accessory-2');
+                if (acc2Select && acc2Select.offsetParent !== null) { // Visible check
+                    acc2 = acc2Select.value;
+                }
+
+                document.getElementById('val-eng').innerText = eng;
+                document.getElementById('val-bat').innerText = bat;
+                document.getElementById('val-frame').innerText = frm;
+                document.getElementById('val-ai').innerText = ai;
+
+                let rMetal = 1 + Math.floor(bat * 0.5);
+                let rPoly = 1 + Math.floor(frm * 0.5);
+                let rMotor = 1 + Math.floor(eng * 0.3);
+                let rChip = ai > 0 ? ai : 0;
+
+                let accWeight = 0; let accPower = 0; let accCost = 0;
+                let reqList = [];
+
+                if (acc1 !== 'none') {
+                    const item = ACCESSORIES[acc1];
+                    accWeight += item.weight; accPower += item.power; accCost += item.price;
+                    reqList.push(acc1);
+                }
+                if (acc2 !== 'none') {
+                    const item = ACCESSORIES[acc2];
+                    accWeight += item.weight; accPower += item.power; accCost += item.price;
+                    reqList.push(acc2);
+                }
+
+                const weight = (frm * 1.5) + (bat * 1.2) + (eng * 0.8) + accWeight;
+                const lift = eng * 5.0;
+                let load = lift - weight; if (load < 0) load = 0;
+
+                let speed = load > 0 ? (lift / (weight || 1)) * 4 : 0;
+                const consumption = (eng * 0.8) + accPower;
+
+                let range = load > 0 ? (bat * 10 / Math.max(0.1, consumption)) * speed * this.passives.battery : 0;
+                let reliability = Math.min(100, Math.max(0, Math.floor(90 + (frm * 2) - (eng * 2) - (ai * 4) + this.passives.frame + this.passives.ai)));
+                let stealth = Math.max(0, Math.floor((ai * 3) - (eng * 0.5)));
+                let life = 100 + (frm * 20) - (eng * 5);
+
+                const partCost = (rMetal * 15) + (rPoly * 40) + (rMotor * 120) + (rChip * 600);
+                const cost = partCost + 100 + accCost;
+
+                this.design = {
+                    speed, range, load, reliability, weight, stealth, life, cost,
+                    acc: acc1, acc2: acc2,
+                    req: { metal: rMetal, poly: rPoly, motor: rMotor, chip: rChip, specials: reqList }
+                };
+                this.updateDesignUI();
+                this.updateBuildPreview();
+            }
+
+            updateBuildPreview() {
+                if (this.buildJob) return;
+                const btn = document.getElementById('build-btn-main');
+                let qty = parseInt(document.getElementById('build-qty').value);
+                if (isNaN(qty) || qty < 1) qty = 1;
+                const sec = (1250 * qty * Math.pow(0.85, this.factoryLevel - 1) / 1000).toFixed(1);
+                document.getElementById('build-time-preview').innerText = `Est: ${sec}s`;
+                const r = this.design.req;
+                let valid = true; let err = "";
+
+                // Validate stock for all special parts (accessories)
+                let missingPart = false;
+                if (r.specials && r.specials.length > 0) {
+                    r.specials.forEach(s => {
+                        if ((this.res[s] || 0) < qty) missingPart = true;
+                    });
+                }
+
+                if (this.design.load <= 0) { valid = false; err = "HEAVY"; }
+                else if (this.inventory.reduce((a, b) => a + b.qty, 0) + qty > this.maxStorage) { valid = false; err = "FULL"; }
+                else if (this.res.metal < r.metal * qty) { valid = false; err = "METAL"; }
+                else if (this.res.poly < r.poly * qty) { valid = false; err = "POLY"; }
+                else if (this.res.motor < r.motor * qty) { valid = false; err = "MOTOR"; }
+                else if (this.res.chip < r.chip * qty) { valid = false; err = "CHIP"; }
+                else if (missingPart) { valid = false; err = "PART"; }
+                else if (this.cash < this.design.cost * qty * 0.2) { valid = false; err = "CASH"; }
+                btn.disabled = !valid;
+                btn.innerText = valid ? `BUILD (${qty})` : err;
+                btn.style.background = valid ? 'var(--accent-green)' : '#30363d';
+            }
+
+            manufacture() {
+                if (this.buildJob) return;
+                const qty = parseInt(document.getElementById('build-qty').value) || 1;
+                const r = this.design.req;
+                this.res.metal -= r.metal * qty; this.res.poly -= r.poly * qty;
+                this.res.motor -= r.motor * qty; this.res.chip -= r.chip * qty;
+                if (r.specials && r.specials.length > 0) {
+                    r.specials.forEach(s => {
+                        this.res[s] -= qty;
+                    });
+                } else if (r.special) { // Fallback for old design structure
+                    this.res[r.special] -= qty;
+                }
+                this.cash -= this.design.cost * qty * 0.2;
+
+                const dur = Math.max(200, 1250 * qty * Math.pow(0.85, this.factoryLevel - 1));
+                const name = document.getElementById('model-name-input').value;
+                this.buildJob = { name, qty, stats: { ...this.design }, startTime: Date.now(), duration: dur / 1000 };
+
+                document.getElementById('build-text').innerText = `Building ${qty}x ${name}`;
+                document.getElementById('build-btn-main').disabled = true;
+                this.updateUI();
+            }
+
+            finalizeBatch() {
+                const j = this.buildJob;
+                const exist = this.inventory.find(b => b.name === j.name && JSON.stringify(b.stats) === JSON.stringify(j.stats));
+                if (exist) exist.qty += j.qty; else this.inventory.push({ name: j.name, qty: j.qty, stats: j.stats, id: Date.now() });
+                this.log(`Production complete: ${j.qty}x ${j.name}`, "success");
+
+                this.buildJob = null;
+                document.getElementById('build-bar-fill').style.width = '0%';
+                document.getElementById('build-text').innerText = "Factory Idle";
+                this.updateDesign(); this.updateUI();
+            }
+
+            // --- Blueprints ---
+            saveDesign() {
+                const name = document.getElementById('model-name-input').value;
+                const bp = {
+                    name, eng: document.getElementById('slider-engine').value,
+                    bat: document.getElementById('slider-battery').value,
+                    frm: document.getElementById('slider-frame').value,
+                    ai: document.getElementById('slider-ai').value,
+                    acc: document.getElementById('select-accessory').value,
+                    stats: { ...this.design }
+                };
+                this.savedDesigns.push(bp);
+                this.updateSavedListUI(); this.renderBlueprints();
+                this.log(`Blueprint saved: ${name}`, "info");
+            }
+            loadDesign(i) {
+                if (i === "") return;
+                const bp = this.savedDesigns[i];
+                if (bp) {
+                    document.getElementById('model-name-input').value = bp.name;
+                    document.getElementById('slider-engine').value = bp.eng;
+                    document.getElementById('slider-battery').value = bp.bat;
+                    document.getElementById('slider-frame').value = bp.frm;
+                    document.getElementById('slider-ai').value = bp.ai;
+                    document.getElementById('select-accessory').value = bp.acc;
+                    this.updateDesign();
+                }
+            }
+            deleteBlueprint(i) {
+                this.savedDesigns.splice(i, 1);
+                this.updateSavedListUI(); this.renderBlueprints();
+            }
+            renderBlueprints() {
+                const container = document.getElementById('blueprints-list');
+                container.innerHTML = '';
+                if (this.savedDesigns.length === 0) { container.innerHTML = '<div style="color:#555; text-align:center;">No Blueprints Saved</div>'; return; }
+                this.savedDesigns.forEach((bp, i) => {
+                    const div = document.createElement('div'); div.className = 'blueprint-card';
+                    div.innerHTML = `<div class="bp-info"><strong>${bp.name}</strong><div class="bp-stats">Spd:${bp.stats.speed.toFixed(0)} Rng:${bp.stats.range.toFixed(0)} Acc:${bp.acc}</div></div><div><button class="btn-small" onclick="game.loadDesign(${i})">Load</button><button class="btn-small" style="color:var(--accent-red); border-color:var(--accent-red);" onclick="game.deleteBlueprint(${i})">Del</button></div>`;
+                    container.appendChild(div);
+                });
+            }
+            updateSavedListUI() {
+                const select = document.getElementById('saved-designs');
+                select.innerHTML = '<option value="">-- Load Blueprint --</option>';
+                this.savedDesigns.forEach((bp, index) => {
+                    const opt = document.createElement('option'); opt.value = index; opt.innerText = bp.name; select.appendChild(opt);
+                });
+            }
+
+            // --- Contracts ---
+            generateContracts() {
+                this.activeContracts = [];
+                const list = document.getElementById('contracts-list');
+                if (list) list.innerHTML = '';
+
+                const count = Math.floor(Math.random() * 8) + 4; // 4 to 11 contracts
+                const types = ['gov', 'police', 'logistics', 'media', 'agri', 'military', 'retail'];
+
+                // Determine Tier based on Reputation
+                let tier = 1;
+                if (this.reputation >= 20) tier = 2;
+                if (this.reputation >= 50) tier = 3;
+
+                const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+                for (let i = 0; i < count; i++) {
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    const baseQty = Math.floor(Math.random() * 5) + 3 + Math.floor(this.reputation / 10);
+                    let clientType = type;
+                    if (type === 'retail') {
+                        clientType = (this.reputation > 60) ? 'retail_big' : 'retail_small';
+                    }
+                    if (!CLIENTS[clientType]) clientType = 'gov'; // Fallback
+                    const client = CLIENTS[clientType][Math.floor(Math.random() * CLIENTS[clientType].length)];
+
+                    let c = { id: Date.now() + i, type, qty: baseQty, tier, req: {}, client, reqCert: 'civil' };
+                    let title = `${client} Contract`;
+                    let flavor = "Standard delivery contract.";
+                    let icon = "📝";
+                    let cls = "";
+
+                    // Default Reqs
+                    c.req.speed = tier * 30;
+                    c.req.range = tier * 60;
+                    c.req.reliability = 60 + (tier * 10);
+                    c.req.stealth = 0;
+
+                    if (type === 'retail') {
+                        title = `${client} Order`; icon = "🛒"; cls = "contract-retail";
+                        c.qty = Math.floor(c.qty * 2.0);
+                        c.req.reliability = 70 + (tier * 5);
+                        c.pay = c.qty * 500;
+                        if (clientType === 'retail_big') c.reqCert = 'commercial';
+                    }
+                    else if (type === 'gov') {
+                        title = `${client} Sector`; icon = "🏛️"; cls = "contract-gov";
+                        c.req.reliability = 85 + (tier * 5);
+                        c.pay = c.qty * 2500;
+                        let pool = ['spotlight'];
+                        if (tier >= 2) pool.push('nightvision', 'sniffer');
+                        if (tier >= 3) pool.push('lidar', 'geiger');
+                        if (Math.random() > 0.4) c.req.acc = pick(pool);
+                    }
+                    else if (type === 'police') {
+                        title = `${client} Patrol`; icon = "🚓"; cls = "contract-police";
+                        c.req.speed = 100 + (tier * 20);
+                        c.reqCert = 'police';
+                        c.pay = c.qty * 1200;
+
+                        if (tier === 3 && Math.random() > 0.4) {
+                            c.req.acc = ['thermal', 'winch'];
+                            title = `${client} SAR`;
+                            c.pay = c.qty * 4000;
+                        } else {
+                            let pool = ['siren', 'spotlight'];
+                            if (tier >= 2) pool.push('nightvision', 'defib');
+                            if (tier >= 3) pool.push('thermal', 'net');
+                            if (Math.random() > 0.3) c.req.acc = pick(pool);
+                        }
+                    }
+                    else if (type === 'military') {
+                        title = `${client} SpecOps`; icon = "🎯"; cls = "contract-gov";
+                        c.req.stealth = 20 + (tier * 10);
+                        c.req.range = tier * 100;
+                        c.reqCert = 'military';
+                        c.pay = c.qty * 3500;
+
+                        let pool = ['jammer'];
+                        if (tier >= 2) pool.push('nightvision');
+
+                        if (tier === 3 && Math.random() > 0.7) {
+                            c.req.acc = ['thermal', 'encrypt'];
+                            c.pay = c.qty * 6000;
+                            title += " (ELITE)";
+                        } else {
+                            if (tier >= 3) pool.push('thermal', 'encrypt', 'raft');
+                            c.req.acc = pick(pool);
+                        }
+                    }
+                    else if (type === 'logistics') {
+                        title = `${client} Route`; icon = "📦"; cls = "contract-logistics";
+                        c.req.load = tier * 5;
+                        c.reqCert = 'commercial';
+                        c.pay = c.qty * 1000;
+                        let pool = [];
+                        if (tier >= 2) pool.push('claw');
+                        if (tier >= 3) pool.push('winch', 'magnet');
+                        if (pool.length > 0 && Math.random() > 0.5) c.req.acc = pick(pool);
+                    }
+                    else if (type === 'media') {
+                        title = `${client} Footage`; icon = "🎥"; cls = "contract-media";
+                        c.reqCert = 'commercial';
+                        c.pay = c.qty * 1500;
+                        let pool = ['camera'];
+                        if (tier >= 2) pool.push('gimbal');
+                        c.req.acc = pick(pool);
+                    }
+                    else if (type === 'agri') {
+                        title = `${client} Survey`; icon = "🌾"; cls = "contract-agri";
+                        c.pay = c.qty * 1400;
+                        let pool = ['solar'];
+                        if (tier >= 2) pool.push('sensor', 'sprayer');
+                        if (tier >= 3) pool.push('seeder');
+                        if (Math.random() > 0.4) c.req.acc = pick(pool);
+                    }
+
+                    c.title = title; c.icon = icon; c.cls = cls; c.flavor = flavor;
+                    if (!c.pay) c.pay = c.qty * 1000;
+
+                    this.activeContracts.push(c);
+                }
+                this.renderContracts();
+                this.renderSiloInventory();
+            }
+
+            renderContracts() {
+                const list = document.getElementById('contracts-list'); list.innerHTML = '';
+                this.activeContracts.forEach(c => {
+                    const div = document.createElement('div'); div.className = `contract-card ${c.cls}`;
+                    div.onclick = () => this.openContractModal(c.id);
+                    let reqList = [];
+                    if (c.req.acc) {
+                        if (Array.isArray(c.req.acc)) {
+                            reqList.push(`REQ: ${c.req.acc.map(a => ACCESSORIES[a].name.split(' ')[0].toUpperCase()).join('+')}`);
+                        } else {
+                            reqList.push(`REQ: ${ACCESSORIES[c.req.acc].name.toUpperCase()}`);
+                        }
+                    }
+                    if (c.reqCert && c.reqCert !== 'civil') {
+                        reqList.push(`<span style="color:${this.certifications.includes(c.reqCert) ? '#2ea043' : '#da3633'}">LIC: ${c.reqCert.toUpperCase()}</span>`);
+                    }
+
+                    if (c.req.spd) reqList.push(`SPD>${c.req.spd}`);
+                    if (c.req.rng) reqList.push(`RNG>${c.req.rng}km`);
+                    if (c.req.load) reqList.push(`LOAD>${c.req.load}kg`);
+                    if (c.req.stl) reqList.push(`STL>${c.req.stl}`);
+                    let reqHTML = reqList.map(r => `<div class="req-item">${r}</div>`).join('');
+                    div.innerHTML = `<div class="contract-header"><span class="contract-title"><span class="contract-icon">${c.icon}</span> ${c.title} <span class="contract-tier">T${c.tier}</span></span><span>$${c.pay.toLocaleString()}</span></div><div class="req-grid">${reqHTML}</div><div style="font-size:0.7rem; color:#8b949e; text-align:right;">Qty: ${c.qty}</div>`;
+                    list.appendChild(div);
+                });
+            }
+
+            openContractModal(id) {
+                const c = this.activeContracts.find(x => x.id === id); if (!c) return;
+                document.getElementById('modal-title').innerText = `${c.icon} ${c.title}`;
+                document.getElementById('modal-pay').innerText = `$${c.pay.toLocaleString()}`;
+                document.getElementById('modal-flavor').innerText = `"${c.flavor}"`;
+
+                let reqText = `Client: ${c.client}<br>Quantity: ${c.qty}<br>`;
+                if (c.reqCert) {
+                    const owned = this.certifications.includes(c.reqCert);
+                    reqText += `License: <span style="color:${owned ? '#2ea043' : '#da3633'}">${c.reqCert.toUpperCase()}</span><br>`;
+                }
+
+                if (c.req.acc) {
+                    if (Array.isArray(c.req.acc)) {
+                        const names = c.req.acc.map(a => ACCESSORIES[a].name).join(' + ');
+                        reqText += `Components: ${names}<br>`;
+                    } else {
+                        reqText += `Component: ${ACCESSORIES[c.req.acc].name}<br>`;
+                    }
+                }
+                if (c.req.spd) reqText += `Speed: ${c.req.spd}+<br>`;
+                if (c.req.load) reqText += `Load: ${c.req.load}kg+<br>`;
+                document.getElementById('modal-reqs').innerHTML = reqText;
+                document.getElementById('modal-accept-btn').onclick = () => this.fulfillContract(id);
+                document.getElementById('contract-modal').style.display = 'flex';
+            }
+
+            fulfillContract(id) {
+                const idx = this.activeContracts.findIndex(c => c.id === id); if (idx === -1) return;
+                const c = this.activeContracts[idx];
+
+                // Certification Check
+                if (c.reqCert && !this.certifications.includes(c.reqCert)) {
+                    alert(`Certification Required: ${c.reqCert.toUpperCase()}\n\nPlease acquire this certification in the Admin tab.`);
+                    return;
+                }
+
+                let matches = this.inventory.filter(b => {
+                    if (c.req.acc) {
+                        const needed = Array.isArray(c.req.acc) ? c.req.acc : [c.req.acc];
+                        const has1 = b.stats.acc;
+                        const has2 = b.stats.acc2 || 'none';
+                        // Check if every needed item is present in either has1 or has2
+                        // BUT: If 2 items needed, has1+has2 must cover them.
+                        // Simplification: Check if the set of needed is subset of [has1, has2]
+                        const present = [has1, has2];
+                        const missing = needed.filter(n => !present.includes(n));
+                        if (missing.length > 0) return false;
+                    }
+                    if (c.req.spd && b.stats.speed < c.req.spd) return false;
+                    if (c.req.rng && b.stats.range < c.req.rng) return false;
+                    if (c.req.load && b.stats.load < c.req.load) return false;
+                    if (c.req.stl && b.stats.stealth < c.req.stl) return false;
+                    return true;
+                });
+                const total = matches.reduce((a, b) => a + b.qty, 0);
+                if (total < c.qty) {
+                    // Diagnostic help
+                    let reasons = [];
+                    const allDrones = this.inventory;
+                    if (c.req.acc && allDrones.some(b => b.stats.acc !== c.req.acc)) reasons.push("Wrong Component");
+                    if (c.req.spd && allDrones.some(b => b.stats.speed < c.req.spd)) reasons.push("Speed too low");
+                    if (c.req.rng && allDrones.some(b => b.stats.range < c.req.rng)) reasons.push("Range too low");
+                    if (c.req.load && allDrones.some(b => b.stats.load < c.req.load)) reasons.push("Load too low");
+                    if (c.req.stl && allDrones.some(b => b.stats.stealth < c.req.stl)) reasons.push("Stealth too low");
+
+                    const reasonStr = reasons.length > 0 ? `\n(Common issues: ${[...new Set(reasons)].join(', ')})` : "";
+                    alert(`Not enough qualifying units! Need ${c.qty}. Have ${total} valid.${reasonStr}`);
+                    return;
+                }
+                let needed = c.qty;
+                for (let b of matches) {
+                    if (needed <= 0) break;
+                    let take = Math.min(b.qty, needed);
+                    b.qty -= take; needed -= take;
+
+                    // Sales Tracking
+                    if (this.salesHistory[b.name]) this.salesHistory[b.name] += take;
+                    else this.salesHistory[b.name] = take;
+                }
+                this.totalSales += c.qty;
+                this.currentMonthUnits += c.qty;
+
+                this.inventory = this.inventory.filter(b => b.qty > 0);
+                this.cash += c.pay; this.reputation++;
+                this.monthlyRevenue += c.pay; // Track revenue for taxes
+                this.log(`Contract fulfilled: ${c.title}`, "success");
+                this.activeContracts.splice(idx, 1);
+                this.renderContracts(); ui.closeModal(); this.updateUI();
+            }
+
+            calculateExpenses() {
+                const totalEmp = this.employees.silo + this.employees.warehouse + this.employees.factory + this.employees.rd;
+                const salaries = totalEmp * 150;
+                const taxes = Math.floor(this.monthlyRevenue * 0.15);
+
+                // Dynamic Costs
+                // Energy: Factory Base + Silo AC ($0.5/unit) + Warehouse Lighting ($5/slot) + Machine Power ($10/unit built)
+                const energy = (this.factoryLevel * 500) + (this.maxMats * 0.5) + (this.maxStorage * 5) + (this.currentMonthUnits * 10);
+
+                // Supplies: Base + Emp Amenities + Factory Consumables ($5/unit built)
+                const supplies = 200 + (50 * totalEmp) + (this.currentMonthUnits * 5);
+
+                // Loan Payments
+                let loanPayment = 0;
+                this.loans.forEach(l => {
+                    // Handle both old format (compatible) and new
+                    if (l.monthlyPayment) loanPayment += l.monthlyPayment;
+                });
+
+                return { salaries, taxes, energy, supplies, loanPayment, total: salaries + taxes + energy + supplies + loanPayment };
+            }
+
+            // --- Pause & R&D ---
+            togglePause() {
+                if (this.isPaused) {
+                    // RESUME
+                    this.isPaused = false;
+                    const pauseDur = Date.now() - this.pauseStart;
+                    // Shift start times so progress doesn't jump
+                    if (this.activeResearch) this.activeResearch.startTime += pauseDur;
+                    if (this.buildJob) this.buildJob.startTime += pauseDur;
+                    if (this.infraJob) this.infraJob.startTime += pauseDur;
+
+                    document.getElementById('pause-btn').innerText = "⏸ PAUSE";
+                    document.getElementById('pause-overlay').style.display = 'none';
+                    this.loopId = setInterval(() => this.tick(), 1000);
+                    this.log("Game Resumed", "info");
+                } else {
+                    // PAUSE
+                    this.isPaused = true;
+                    this.pauseStart = Date.now();
+                    clearInterval(this.loopId);
+                    document.getElementById('pause-btn').innerText = "▶ RESUME";
+                    document.getElementById('pause-overlay').style.display = 'flex';
+                    this.log("Game Paused", "warn");
+                }
+            }
+
+
+            // --- UI ---
+            updateDesignUI() {
+                const d = this.design;
+                const set = (id, v) => document.getElementById(id).innerText = v;
+                set('stat-speed', d.speed.toFixed(1)); set('stat-range', d.range.toFixed(0) + "km");
+                set('stat-load', d.load.toFixed(1) + "kg"); set('stat-rel', d.reliability + "%");
+                set('stat-weight', d.weight.toFixed(1) + "kg"); set('stat-stealth', d.stealth);
+                set('stat-life', d.life + "h"); set('stat-cost', "$" + Math.floor(d.cost));
+                let reqStr = `M:${d.req.metal} P:${d.req.poly} Mo:${d.req.motor} C:${d.req.chip}`;
+                if (d.req.special) reqStr += ` + 1x ${ACCESSORIES[d.req.special].name}`;
+                document.getElementById('req-mats-display').innerText = reqStr;
+            }
+
+            updateUI() {
+                if (!document.getElementById('game-container').classList.contains('active')) return;
+
+                const set = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerText = val;
+                };
+
+                try {
+                    set('month-num', this.month);
+                    set('cash-display', "$" + Math.floor(this.cash).toLocaleString());
+                    set('rep-display', this.reputation);
+
+                    // Unlock Second Accessory Slot Check
+                    const slot2 = document.getElementById('slot-2-container');
+                    if (slot2) {
+                        if (this.reputation >= 20) {
+                            slot2.style.display = 'block';
+                        } else {
+                            slot2.style.display = 'none';
+                        }
+                    }
+
+                    // Inventory
+                    this.renderSiloInventory();
+
+                    // Storage Disp
+                    const totalStored = this.inventory ? this.inventory.reduce((a, b) => a + b.qty, 0) : 0;
+                    set('storage-disp', totalStored + "/" + this.maxStorage);
+
+                    // Factory & Staff
+                    set('factory-lvl', this.factoryLevel);
+                    const eff = Math.pow(1.15, this.factoryLevel - 1);
+                    set('factory-rate-disp', Math.round(eff * 100) + '%');
+
+                    set('emp-silo-disp', this.employees.silo);
+                    set('emp-wh-disp', this.employees.warehouse);
+                    set('emp-fac-disp', this.employees.factory);
+
+                } catch (e) {
+                    console.error("UpdateUI Error:", e);
+                }
+
+                this.renderRawMarket();
+                this.renderAccessoryMarket();
+                this.renderAdminTab();
+
+                const list = document.getElementById('inventory-list'); list.innerHTML = '';
+                this.inventory.forEach((b, i) => {
+                    let accIcon = "";
+                    if (b.stats.acc !== 'none') accIcon = "🧩";
+                    const div = document.createElement('div'); div.className = 'inv-item';
+                    div.innerHTML = `
+                        <div style="font-weight:bold; font-size:0.9rem">${accIcon} ${b.name} (x${b.qty})</div>
+                        <table class="spec-table">
+                            <tr><td>Spd:${b.stats.speed.toFixed(0)}</td><td>Acc:${b.stats.acc}</td></tr>
+                            <tr><td>Ld:${b.stats.load.toFixed(0)}</td><td>Rel:${b.stats.reliability}%</td></tr>
+                        </table>
+                        <button class="btn-small" style="width:100%; margin-top:5px; border-color:#da3633; color:#da3633" onclick="game.scrap(${i})">Scrap</button>
+                    `;
+                    list.appendChild(div);
+                });
+                this.updateBuildPreview();
+
+                // Infra buttons state
+                const infraBusy = this.infraJob !== null;
+                document.getElementById('btn-upg-silo').disabled = infraBusy;
+                document.getElementById('btn-upg-warehouse').disabled = infraBusy;
+                document.getElementById('btn-upg-factory').disabled = infraBusy;
+                document.getElementById('btn-upg-rd').disabled = infraBusy;
+            }
+
+            log(msg, type) {
+                const d = document.createElement('div'); d.className = `log-entry log-${type}`;
+                d.innerText = `[M${this.month}] ${msg}`; document.getElementById('log-content').prepend(d);
+            }
+            scrap(idx) {
+                const b = this.inventory[idx]; const r = b.stats.req; const f = 0.5 * b.qty;
+                this.res.metal += Math.floor(r.metal * f); this.res.poly += Math.floor(r.poly * f);
+                this.res.motor += Math.floor(r.motor * f); this.res.chip += Math.floor(r.chip * f);
+                if (r.special) {
+                    this.res[r.special] = (this.res[r.special] || 0) + b.qty;
+                    this.log(`Scrapped drone(s). Materials recycled. Recovered ${b.qty}x ${ACCESSORIES[r.special].name}.`, "success");
+                } else {
+                    this.log("Scrapped drone(s). Materials recycled.", "info");
+                }
+                this.inventory.splice(idx, 1); this.updateUI();
+            }
+            randomizePrices() {
+                // Randomize global base roughly
+                const flux = () => 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+
+                SUPPLIERS.forEach(s => {
+                    const base = this.basePrices[s.type];
+                    let mod = flux() * s.baseMod;
+
+                    // Event Price Modifiers
+                    this.activeEvents.forEach(e => {
+                        if (e.effect && e.effect.price_mod && e.effect.price_mod[s.type]) {
+                            mod *= e.effect.price_mod[s.type];
+                        }
+                    });
+
+                    this.supplierPrices[s.id] = Math.floor(base * mod);
+                    this.supplierStock[s.id] = Math.floor(s.maxStock * flux());
+                });
+            }
+
+            // --- Event System ---
+            triggerEvent(specificEvt = null) {
+                let evt = specificEvt;
+                if (!evt) {
+                    const available = EVENTS.filter(e => !this.activeEvents.some(ae => ae.id === e.id));
+                    if (available.length === 0) return;
+                    evt = available[Math.floor(Math.random() * available.length)];
+                } else {
+                    if (this.activeEvents.some(ae => ae.id === evt.id)) return;
+                }
+
+                const activeEvt = { ...evt, timeLeft: evt.duration };
+                this.activeEvents.push(activeEvt);
+
+                this.addToFeed(activeEvt);
+                this.log(`EVENT: ${activeEvt.title}`, "warn");
+                this.updateUI();
+            }
+
+            updateEvents() {
+                this.activeEvents.forEach(e => e.timeLeft--);
+                const expired = this.activeEvents.filter(e => e.timeLeft <= 0);
+                expired.forEach(e => {
+                    this.addToFeed({ title: "Event Ended", type: 'info', desc: `${e.title} has ended.` });
+                });
+                this.activeEvents = this.activeEvents.filter(e => e.timeLeft > 0);
+            }
+
+            addToFeed(evt) {
+                this.feedHistory.unshift({
+                    title: evt.title,
+                    type: evt.type || 'info',
+                    desc: evt.desc,
+                    time: `Month ${this.month}`
+                });
+                if (this.feedHistory.length > 20) this.feedHistory.pop();
+                this.renderFeed();
+            }
+
+            renderFeed() {
+                const container = document.getElementById('feed-content');
+                if (!container) return;
+                container.innerHTML = '';
+                this.feedHistory.forEach(item => {
+                    let color = "#fff";
+                    let icon = "📰";
+                    if (item.type === 'tweet') { color = "#1d9bf0"; icon = "🐦"; }
+                    if (item.type === 'crisis') { color = "#da3633"; icon = "🚨"; }
+                    if (item.type === 'info') { color = "#8b949e"; icon = "ℹ"; }
+                    if (item.type === 'chat') { color = "#a371f7"; icon = "💬"; }
+
+                    const div = document.createElement('div');
+                    div.style.marginBottom = "10px";
+                    div.style.paddingBottom = "10px";
+                    div.style.borderBottom = "1px solid #21262d";
+                    div.innerHTML = `
+                        <div style="font-size:0.75rem; color:#8b949e; margin-bottom:2px;">${item.time}</div>
+                        <div style="font-weight:bold; color:${color}; margin-bottom:2px;">${icon} ${item.title}</div>
+                        <div style="color:#c9d1d1; line-height:1.4;">${item.desc}</div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            // --- Infra Upgrades ---
+            upgradeInfrastructure(type) {
+                if (this.infraJob) return;
+                let cost, dur;
+                if (type === 'silo') { cost = 2000; dur = 20; }
+                else if (type === 'warehouse') { cost = 2500; dur = 20; }
+                else if (type === 'factory') { cost = 10000; dur = 60; }
+                else if (type === 'rd') { cost = 15000; dur = 40; }
+
+                if (this.cash >= cost) {
+                    this.cash -= cost;
+                    this.infraJob = { type, duration: dur, startTime: Date.now() };
+                    document.getElementById('infra-text').innerText = `Building: ${type.toUpperCase()}`;
+                    this.log(`Started expansion: ${type}`, "info");
+                    this.updateUI();
+                } else {
+                    this.log("Insufficient Funds", "warn");
+                }
+            }
+
+            finalizeInfrastructure() {
+                const type = this.infraJob.type;
+                if (type === 'silo') this.maxMats += 100;
+                if (type === 'warehouse') this.maxStorage += 20;
+                if (type === 'factory') this.factoryLevel++;
+
+                this.log(`${type.toUpperCase()} expansion complete!`, "success");
+                this.infraJob = null;
+                document.getElementById('infra-bar-fill').style.width = '0%';
+                document.getElementById('infra-text').innerText = "Infrastructure Idle";
+                this.updateUI();
+            }
+
+            // --- Save / Load ---
+            saveGame() {
+                const data = {
+                    version: 1,
+                    timestamp: Date.now(),
+                    cash: this.cash,
+                    reputation: this.reputation,
+                    month: this.month,
+                    timer: this.timer, // Fix: Save intra-month progress
+                    res: this.res,
+                    inventory: this.inventory,
+                    unlocks: this.unlockedModules,
+                    certifications: this.certifications,
+                    chaosMode: this.chaosMode,
+                    factoryLevel: this.factoryLevel,
+                    maxMats: this.maxMats,
+                    maxStorage: this.maxStorage,
+                    employees: this.employees,
+                    activeResearch: this.activeResearch, // Simplified saving
+                    salesHistory: this.salesHistory,
+                    totalSales: this.totalSales,
+                    // Fix: Add missing state
+                    design: this.design,
+                    tech_progress: this.tech_progress,
+                    activeContracts: this.activeContracts,
+                    activeEvents: this.activeEvents,
+                    activeMandate: this.activeMandate,
+                    savedDesigns: this.savedDesigns // Added blueprints
+                };
+
+                const json = JSON.stringify(data, null, 2);
+                this.downloadSave(json, `drone_tycoon_save_M${this.month}.json`);
+                this.log("Game Saved!", "success");
+            }
+
+            downloadSave(content, fileName) {
+                const a = document.createElement("a");
+                const file = new Blob([content], { type: "application/json" });
+                a.href = URL.createObjectURL(file);
+                a.download = fileName;
+                a.click();
+            }
+
+            importSave(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        this.loadGame(data);
+                    } catch (err) {
+                        alert("Error loading save file: " + err);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            loadGame(data) {
+                if (this.loopId) clearInterval(this.loopId); // Stop existing loop
+
+                this.cash = data.cash || 0;
+                this.reputation = data.reputation || 0;
+                this.month = data.month || 1;
+                this.timer = data.timer || 0; // Fix: Restore intra-month progress
+                this.res = data.res || { metal: 0, poly: 0, motor: 0, chip: 0 };
+                this.inventory = data.inventory || [];
+                this.unlockedModules = data.unlocks || [];
+                this.certifications = data.certifications || ['civil'];
+                this.chaosMode = data.chaosMode || false;
+                this.factoryLevel = data.factoryLevel || 1;
+                this.maxMats = data.maxMats || 200;
+                this.maxStorage = data.maxStorage || 20;
+                this.employees = data.employees || { silo: 0, warehouse: 0, factory: 0 };
+                this.activeResearch = data.activeResearch || null;
+                this.salesHistory = data.salesHistory || {};
+                this.totalSales = data.totalSales || 0;
+
+                // Fix: Restore missing state
+                this.design = data.design || {};
+                this.tech_progress = data.tech_progress || {};
+                this.activeContracts = data.activeContracts || [];
+                this.activeEvents = data.activeEvents || [];
+                this.activeMandate = data.activeMandate || null;
+                this.savedDesigns = data.savedDesigns || []; // Restore blueprints
+
+                // Fallback: If design is invalid (old save), recalibrate from UI defaults
+                if (!this.design.req) {
+                    console.warn("Save missing design data. Recalibrating...");
+                    this.updateDesign();
+                }
+
+                // Reset Timers / Derived State
+                this.infraJob = null;
+                this.buildJob = null;
+
+                // Refresh UI
+                document.getElementById('start-screen').style.display = 'none';
+                document.getElementById('game-container').classList.add('active');
+
+                if (this.activeContracts.length === 0) this.generateContracts();
+                this.updateUI();
+                this.randomizePrices();
+
+                // Re-render views
+                this.renderTechTree();
+                this.renderCertifications();
+                this.renderContracts(); // Ensure contracts are shown
+                this.renderFeed(); // Ensure feed is shown? (Need to save feedHistory too?)
+
+                // Restart Loop
+                this.loopId = setInterval(() => this.tick(), 1000);
+                this.log("Game Loaded Successfully.", "success");
+            }
+        }
+
+        const game = new Game();
+    </script>
+</body>
+
+</html>

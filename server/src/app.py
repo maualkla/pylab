@@ -26,6 +26,15 @@ def switch():
     except Exception as e:
         return {"status": "An error Occurred", "error": str(e)}
 
+@app.route('/drone_tycoon')
+def drone_tycoon():
+    try:
+        return render_template('drone_tycoon.html')
+    except Exception as e:
+        return {"status": "An error Occurred", "error": str(e)}
+
+
+
 @app.route('/lab')
 def lab():
     try:
