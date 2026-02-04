@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DroneOS v5.2 - Infrastructure</title>
+    <title>Drone Tycoon</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -66,7 +66,7 @@
         }
 
         .boot-input {
-            width: 100%;
+            width: 80%;
             padding: 10px;
             margin-bottom: 20px;
             background: #0d1117;
@@ -267,6 +267,81 @@
         .money {
             color: #7ee787;
             text-shadow: 0 0 5px rgba(126, 231, 135, 0.2);
+        }
+
+        #resource-bar {
+            display: flex;
+            gap: 13px;
+            /* Reduced from 15px */
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 3px 9px;
+            /* Reduced from 4px 10px */
+            border-radius: 4px;
+            /* Square look */
+            align-items: center;
+            margin-bottom: 5px;
+
+            /* Separation from line */
+        }
+
+        /* --- Options Menu --- */
+        .options-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .options-btn {
+            background: #30363d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 3px 9px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .options-btn:hover {
+            background: #444c56;
+        }
+
+        .options-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            z-index: 1000;
+            min-width: 120px;
+            flex-direction: column;
+            padding: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .options-dropdown button {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 2px;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 0.75rem;
+        }
+
+        .options-dropdown.show {
+            display: flex;
+        }
+
+        .res-item {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #c9d1d9;
         }
 
         /* --- Panels --- */
@@ -526,6 +601,243 @@
             text-align: center;
             margin-bottom: 10px;
             border: 1px dashed var(--border);
+            position: relative;
+        }
+
+        #drone-visual-container {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 10px auto;
+            position: relative;
+            background: radial-gradient(circle, rgba(22, 27, 34, 1) 0%, rgba(13, 17, 23, 1) 70%);
+            border-radius: 50%;
+            border: 1px solid #30363d;
+        }
+
+        .drone-body {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            background: #1f6feb;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(31, 111, 235, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* Light Frame (Scout/Racer) */
+        .drone-body.light {
+            width: 14px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1f6feb, #0d419d);
+            border: 1px solid #58a6ff;
+        }
+
+        /* Standard Frame (Utility) */
+        .drone-body.std {
+            width: 26px;
+            height: 32px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #238636, #12471f);
+            /* Greenish tint for utility */
+            border: 2px solid #3fb950;
+        }
+
+        .drone-body.std::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        /* Heavy Frame (Industrial/Military) */
+        .drone-body.heavy {
+            width: 34px;
+            height: 34px;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+            background: linear-gradient(135deg, #484f58, #21262d);
+            border: none;
+            /* Clip path removes border */
+        }
+
+        .drone-body.heavy::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            transform: translate(-50%, -50%);
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+        }
+
+        .drone-arm {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 4px;
+            background: #8b949e;
+            transform-origin: 0 50%;
+            border-radius: 2px;
+            z-index: 5;
+        }
+
+        .drone-prop {
+            position: absolute;
+            right: -12px;
+            top: -2px;
+            /* Center vertical relative to arm height */
+            width: 28px;
+            height: 4px;
+            background: #2ea043;
+            border-radius: 2px;
+            animation: spin 0.1s linear infinite;
+        }
+
+        .drone-prop::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* --- Drone Visual Extended --- */
+        .drone-battery-cell {
+            position: absolute;
+            width: 8px;
+            height: 4px;
+            background: #2ea043;
+            border-radius: 1px;
+            z-index: 11;
+            box-shadow: 0 0 2px #2ea043;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .drone-arm.heavy {
+            height: 6px;
+            background: #484f58;
+            border: 1px solid #000;
+        }
+
+        .drone-arm.reinforced {
+            background: #57606a;
+        }
+
+        .drone-acc {
+            position: absolute;
+            z-index: 8;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Accessory Styles */
+        .acc-camera {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #000;
+            border: 2px solid #aaa;
+            box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.5);
+        }
+
+        .acc-siren {
+            width: 8px;
+            height: 6px;
+            background: linear-gradient(90deg, red, blue);
+            animation: flash 0.5s infinite;
+            border-radius: 2px;
+        }
+
+        .acc-spotlight {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .acc-claw {
+            width: 10px;
+            height: 10px;
+            border-left: 3px solid #8b949e;
+            border-bottom: 3px solid #8b949e;
+            transform: rotate(-45deg);
+        }
+
+        .acc-medkit {
+            width: 10px;
+            height: 8px;
+            background: white;
+            border: 1px solid #da3633;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .acc-medkit::after {
+            content: '+';
+            color: #da3633;
+            font-size: 8px;
+            font-weight: bold;
+            line-height: 8px;
+        }
+
+        .acc-box {
+            width: 10px;
+            height: 10px;
+            background: #d29922;
+            border: 1px solid #fff;
+        }
+
+        .acc-solar {
+            width: 12px;
+            height: 8px;
+            background: #1f6feb;
+            border: 1px solid #fff;
+            background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+            background-size: 3px 3px;
+        }
+
+        .acc-sensor {
+            width: 4px;
+            height: 12px;
+            background: #8b949e;
+            border-radius: 2px;
+        }
+
+        @keyframes flash {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .stat-grid {
@@ -763,6 +1075,15 @@
             color: var(--text-muted);
         }
 
+        .close-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            width: 35px;
+            color: var(--text-muted);
+            height: 35px;
+            text-align: center;
+        }
+
         /* --- Utils --- */
         #log-panel {
             grid-column: 1 / -1;
@@ -826,10 +1147,299 @@
             border-top: 1px solid var(--border);
             padding-top: 5px;
         }
+
+        /* Debug Console */
+        #debug-bar {
+            position: fixed;
+            top: 50px;
+            /* Moved down slightly */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(13, 17, 23, 0.98);
+            border: 2px solid #d29922;
+            /* Yellow */
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            z-index: 10000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        #debug-input {
+            background: #000;
+            border: 1px solid #d29922;
+            /* Yellow */
+            color: #d29922;
+            /* Yellow Text */
+            font-family: 'Courier New', Courier, monospace;
+            /* Monospace */
+            padding: 10px 15px;
+            width: 400px;
+            font-size: 1.2rem;
+            /* Big Font */
+            font-weight: bold;
+            outline: none;
+            text-transform: uppercase;
+        }
+
+        /* --- Mobile Support --- */
+        @media (max-width: 900px) {
+            body {
+                padding: 0;
+                overflow: hidden;
+            }
+
+            /* Start Screen Mobile */
+            .boot-box {
+                width: 90% !important;
+                padding: 20px !important;
+            }
+
+            .boot-title {
+                font-size: 1.5rem !important;
+            }
+
+            .boot-input {
+                font-size: 1rem !important;
+                padding: 8px !important;
+            }
+
+            /* Layout Reset - Fixed Window Approach */
+            .container {
+                display: block;
+                position: fixed;
+                top: 100px;
+                /* Header Stack Increased */
+                bottom: 60px;
+                left: 0;
+                right: 0;
+                width: 100%;
+                margin: 0;
+                padding: 10px;
+                height: auto;
+                z-index: 50;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                box-sizing: border-box;
+            }
+
+            /* Hide Desktop Header */
+            header {
+                display: none !important;
+            }
+
+            /* Mobile Top Section */
+            #mobile-header-wrapper {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                z-index: 1500;
+                background: #0d1117;
+                display: flex !important;
+                flex-direction: column;
+            }
+
+            #mobile-stats-row {
+                display: flex;
+                justify-content: center;
+                /* Center Content */
+                align-items: center;
+                padding: 5px 10px;
+                border-bottom: 1px solid #30363d;
+                background: #161b22;
+                height: 40px;
+                box-sizing: border-box;
+                position: relative;
+                /* For absolute menu btn */
+            }
+
+            /* Moved Resource Bar Styling */
+            #mobile-header-wrapper #resource-bar {
+                display: flex !important;
+                overflow-x: auto;
+                white-space: nowrap;
+                background: #0d1117;
+                border-bottom: 1px solid #30363d;
+                padding: 4px 10px;
+                height: 30px;
+                align-items: center;
+                gap: 12px;
+                border-radius: 0;
+                margin: 0;
+            }
+
+            #mobile-header-wrapper #resource-bar::-webkit-scrollbar {
+                display: none;
+            }
+
+            /* Reposition Existing Top Bars */
+            .top-bars {
+                position: relative !important;
+                top: 0;
+            }
+
+            /* Mobile Options Menu */
+            .mobile-options-menu.show {
+                display: flex !important;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 70%;
+                min-width: 250px;
+                z-index: 5000;
+                border: 2px solid #d29922;
+                box-shadow: 0 0 100vw rgba(0, 0, 0, 0.8);
+                /* Darken bg */
+            }
+
+            /* Panel Management */
+            .panel {
+                display: none;
+                height: auto;
+                /* Allow content to dictate height */
+                min-height: 100%;
+                width: 100%;
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                /* Container handles padding */
+                padding-bottom: 20px;
+                /* Extra breathing room at bottom */
+                overflow: visible;
+                /* Let container scroll */
+            }
+
+            .mobile-visible {
+                display: flex !important;
+                animation: fadeIn 0.2s;
+            }
+
+            /* Bottom Navigation */
+            #mobile-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 60px;
+                background: #161b22;
+                border-top: 1px solid #30363d;
+                z-index: 2000;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            .mob-nav-btn {
+                flex: 1;
+                background: transparent;
+                border: none;
+                color: #8b949e;
+                font-size: 0.75rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                border-top: 2px solid transparent;
+                padding: 5px 0;
+                transition: 0.2s;
+            }
+
+            .mob-nav-btn.active {
+                color: var(--accent-blue);
+                border-top-color: var(--accent-blue);
+                background: rgba(88, 166, 255, 0.05);
+            }
+
+            /* UI Adjustments */
+            .boot-box {
+                width: 85%;
+                padding: 20px;
+            }
+
+            .tabs-header {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            h1 {
+                font-size: 1.2rem;
+            }
+
+            .modal-box {
+                width: 95%;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            /* Ensure taps work */
+            button,
+            select,
+            input {
+                min-height: 40px;
+            }
+        }
+
+        /* Desktop Default Defaults */
+        #mobile-header-wrapper,
+        #mobile-nav {
+            display: none;
+        }
+
+        /* Helper for mobile view switching */
+        .mobile-hidden {
+            display: none !important;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- Mobile Header -->
+    <div id="mobile-header-wrapper">
+        <div id="mobile-stats-row">
+            <!-- Menu Left -->
+            <button class="btn-small" style="position:absolute; left:10px; width:auto; margin:0;"
+                onclick="ui.toggleOptions()">☰</button>
+
+            <!-- Centered Stats -->
+            <div style="display:flex; gap:12px; align-items:center; font-family:var(--font-mono); font-size:0.9rem;">
+                <span style="color:white; display:flex; align-items:center; gap:4px;">
+                    M<span id="mob-month">1</span>
+                    <button class="btn-small"
+                        style="margin:0; padding:1px 6px; background:#21262d; border-color:#8b949e;"
+                        onclick="game.skipMonth()">>></button>
+                </span>
+                <span style="color:#7ee787;" id="mob-cash">$0</span>
+                <span style="color:#d29922;" id="mob-rep">0 RP</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div id="mobile-nav">
+        <button class="mob-nav-btn" onclick="ui.mobileView('supply', this)">
+            <span style="font-size:1.2rem;">📦</span><span>Supply</span>
+        </button>
+        <button class="mob-nav-btn active" onclick="ui.mobileView('factory', this)">
+            <span style="font-size:1.2rem;">🏭</span><span>Factory</span>
+        </button>
+        <button class="mob-nav-btn" onclick="ui.mobileView('market', this)">
+            <span style="font-size:1.2rem;">📜</span><span>Market</span>
+        </button>
+        <button class="mob-nav-btn" onclick="ui.mobileView('admin', this)">
+            <span style="font-size:1.2rem;">📊</span><span>More</span>
+        </button>
+        <button class="mob-nav-btn" onclick="ui.mobileView('logs', this)">
+            <span style="font-size:1.2rem;">📰</span><span>News</span>
+        </button>
+    </div>
+
+    <!-- Debug Console -->
+    <div id="debug-bar">
+        <input type="text" id="debug-input" placeholder="CONSOLE COMMAND (: CMD VALUE)">
+    </div>
 
     <div id="start-screen">
         <div class="boot-box">
@@ -863,6 +1473,7 @@
                 <button class="btn" style="border:1px dashed #444; color:#888;"
                     onclick="document.getElementById('load-file').click()">LOAD SAVE FILE</button>
             </div>
+            <div style="font-size:0.8rem; color:#8b949e;">themudev sp_games (c) 2026</div>
         </div>
     </div>
 
@@ -901,7 +1512,10 @@
         <div class="modal-box">
             <div class="modal-header">
                 <span id="modal-title">Mission Briefing</span>
-                <span id="modal-pay" style="color:var(--accent-green)">$0</span>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="modal-pay" style="color:var(--accent-green)">$0</span>
+                    <button class="close-btn" onclick="ui.closeModal()">X</button>
+                </div>
             </div>
             <div class="modal-body">
                 <div id="modal-flavor" class="modal-flavor">...</div>
@@ -924,9 +1538,26 @@
                         onclick="game.skipMonth()">>></button></span>
                 <span>CASH: <span id="cash-display" class="money">$0</span></span>
                 <span>REP: <span id="rep-display" class="rep">0</span></span>
-                <button class="btn-small" style="background:#d29922; color:black; font-weight:bold;"
-                    onclick="game.togglePause()" id="pause-btn">⏸ PAUSE</button>
-                <button class="btn-small" onclick="if(confirm('Quit?')) location.reload()">Quit</button>
+                <div id="resource-bar"></div>
+                <div class="options-container">
+                    <button class="options-btn" onclick="ui.toggleOptions()">⚙️ OPTIONS</button>
+                    <div id="options-dropdown" class="options-dropdown">
+                        <button class="btn-small"
+                            style="background:#2ea043; color:white; font-weight:bold; border:none;"
+                            onclick="game.saveGame()">💾 SAVE</button>
+                        <button class="btn-small" style="background:#d29922; color:black; font-weight:bold;"
+                            onclick="game.togglePause()" id="pause-btn">⏸ PAUSE</button>
+                        <button class="btn-small"
+                            style="background:#8b949e; color:black; font-weight:bold; border:none;"
+                            onclick="ui.toggleConsole()">💻 CLI</button>
+                        <button class="btn-small"
+                            style="background:#da3633; color:white; font-weight:bold; border:none;"
+                            onclick="if(confirm('Quit?')) location.reload()">QUIT</button>
+                        <button class="btn-small mobile-visible"
+                            style="margin-top:5px; border-color:#8b949e; color:#8b949e;"
+                            onclick="ui.toggleOptions()">CLOSE MENU</button>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -980,13 +1611,16 @@
             </div>
         </div>
 
+
+
         <!-- Loan Modal -->
         <div id="loan-modal" class="modal-overlay" style="display:none;">
             <div class="modal-box" style="border-color: #da3633;">
                 <h3 style="color:#da3633; margin-top:0;">⚠ Financial Warning</h3>
                 <p>Your cash balance is negative!</p>
                 <p>Consecutive months in debt: <span id="debt-strikes"
-                        style="font-weight:bold; color:#da3633;">1</span>/3</p>
+                        style="font-weight:bold; color:#da3633;">1</span>/3
+                </p>
 
                 <div style="background:#161b22; padding:15px; border-radius:6px; margin:15px 0;">
                     <h4 style="margin:0 0 10px 0;">Emergency Loan Offer</h4>
@@ -1007,6 +1641,28 @@
                         onclick="game.acceptLoan()">Accept Offer</button>
                     <button class="btn-small" style="flex:1; border-color:#da3633; color:#da3633;"
                         onclick="document.getElementById('loan-modal').style.display='none'">Decline (Risky)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed Detail Modal -->
+        <div id="feed-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-box" style="border-color: #1d9bf0; max-width: 500px;">
+                <div class="modal-header">
+                    <h3 id="feed-modal-title" style="color:#1d9bf0;">Tweet</h3>
+                    <button class="close-btn" onclick="ui.closeModal()">X</button>
+                </div>
+                <div style="margin: 15px 0;">
+                    <div id="feed-modal-user"
+                        style="font-weight:bold; color:white; font-size:1.1rem; margin-bottom:5px;">
+                    </div>
+                    <div id="feed-modal-desc" style="color:#c9d1d1; font-size:1rem; line-height:1.5;"></div>
+                    <div id="feed-modal-time" style="color:#8b949e; font-size:0.8rem; margin-top:10px;"></div>
+                </div>
+                <div
+                    style="border-top:1px solid #30363d; padding-top:10px; display:flex; gap:20px; color:#8b949e; font-size:0.9rem;">
+                    <span><strong id="feed-likes" style="color:white;"></strong> Likes</span>
+                    <span><strong id="feed-retweets" style="color:white;"></strong> Retweets</span>
                 </div>
             </div>
         </div>
@@ -1063,6 +1719,8 @@
                 </div>
 
                 <div class="drone-preview">
+                    <div id="drone-visual-container"></div>
+
                     <div style="display:flex; align-items:center; gap:5px;">
                         <input type="text" id="model-name-input" class="name-input" value="MK-1 Prototype">
                         <button class="btn-small" style="width:auto; margin:0;" onclick="game.saveDesign()">💾</button>
@@ -1115,6 +1773,25 @@
                         <option value="geiger" id="opt-geiger" disabled>☢️ Geiger Counter (Requires Stock)</option>
                         <option value="encrypt" id="opt-encrypt" disabled>🔒 Encryption (Requires Stock)</option>
 
+                        <!-- Specialized/New -->
+                        <option value="life_support" id="opt-life_support" disabled>🧬 Life Support (Requires Stock)
+                        </option>
+                        <option value="swarm_ai" id="opt-swarm_ai" disabled>🐝 Swarm AI (Requires Stock)</option>
+                        <option value="payload_release" id="opt-payload_release" disabled>📦 Payload Drop (Requires
+                            Stock)</option>
+                        <option value="extinguisher" id="opt-extinguisher" disabled>🧯 Extinguisher (Requires Stock)
+                        </option>
+                        <option value="parachute" id="opt-parachute" disabled>🪂 Parachute (Requires Stock)</option>
+                        <option value="sonar" id="opt-sonar" disabled>📡 Sonar (Requires Stock)</option>
+                        <option value="printer" id="opt-printer" disabled>🖨️ 3D Printer (Requires Stock)</option>
+
+                        <!-- Tier 4 / Frontier -->
+                        <option value="holo_ads" id="opt-holo_ads" disabled>📺 Holo-Ads (Requires Stock)</option>
+                        <option value="cabin" id="opt-cabin" disabled>🛋️ Pax Cabin (Requires Stock)</option>
+                        <option value="ion" id="opt-ion" disabled>🚀 Ion Thruster (Requires Stock)</option>
+                        <option value="drill" id="opt-drill" disabled>⛏️ Asteroid Drill (Requires Stock)</option>
+                        <option value="fusion" id="opt-fusion" disabled>⚛️ Fusion Cell (Requires Stock)</option>
+
                         <!-- Misc -->
                         <option value="solar" id="opt-solar" disabled>☀️ Solar Array (Requires Stock)</option>
                         <option value="sprayer" id="opt-sprayer" disabled>🚿 Sprayer (Requires Stock)</option>
@@ -1152,6 +1829,22 @@
                             <option value="seeder" id="opt2-seeder" disabled>🌱 Auto-Seeder</option>
                             <option value="geiger" id="opt2-geiger" disabled>☢️ Geiger Counter</option>
                             <option value="encrypt" id="opt2-encrypt" disabled>🔒 Encryption</option>
+
+                            <!-- Specialized/New -->
+                            <option value="life_support" id="opt2-life_support" disabled>🧬 Life Support</option>
+                            <option value="swarm_ai" id="opt2-swarm_ai" disabled>🐝 Swarm AI</option>
+                            <option value="payload_release" id="opt2-payload_release" disabled>📦 Payload Drop</option>
+                            <option value="extinguisher" id="opt2-extinguisher" disabled>🧯 Extinguisher</option>
+                            <option value="parachute" id="opt2-parachute" disabled>🪂 Parachute</option>
+                            <option value="sonar" id="opt2-sonar" disabled>📡 Sonar</option>
+                            <option value="printer" id="opt2-printer" disabled>🖨️ 3D Printer</option>
+
+                            <!-- Tier 4 / Frontier -->
+                            <option value="holo_ads" id="opt2-holo_ads" disabled>📺 Holo-Ads</option>
+                            <option value="cabin" id="opt2-cabin" disabled>🛋️ Pax Cabin</option>
+                            <option value="ion" id="opt2-ion" disabled>🚀 Ion Thruster</option>
+                            <option value="drill" id="opt2-drill" disabled>⛏️ Asteroid Drill</option>
+                            <option value="fusion" id="opt2-fusion" disabled>⚛️ Fusion Cell</option>
 
                             <!-- Misc -->
                             <option value="solar" id="opt2-solar" disabled>☀️ Solar Array</option>
@@ -1275,7 +1968,8 @@
                         <tr style="border-top:1px solid #30363d">
                             <td style="padding-top:5px; color:#fff;">Total Paid</td>
                             <td id="bill-total"
-                                style="padding-top:5px; text-align:right; color:#da3633; font-weight:bold;">$0</td>
+                                style="padding-top:5px; text-align:right; color:#da3633; font-weight:bold;">
+                                $0</td>
                         </tr>
                     </table>
                     <div style="margin-top:15px; font-size:0.8rem; color:#8b949e;">
@@ -1321,12 +2015,6 @@
                 </div>
 
                 <!-- Save System -->
-                <div
-                    style="background:#0d1117; padding:10px; border-radius:4px; margin-top:15px; border:1px solid #30363d;">
-                    <h4 style="margin:0 0 10px 0; color:white;">System</h4>
-                    <button class="btn" onclick="game.saveGame()"
-                        style="width:100%; border-color:#2ea043; color:#2ea043;">Save Game (.json)</button>
-                </div>
             </div>
         </section>
 
@@ -1348,11 +2036,88 @@
         </section>
     </div>
 
+    <!-- Mobile Options Modal -->
+    <div id="mobile-options-modal" class="modal-overlay" style="display:none; z-index:9000;">
+        <div class="modal-box"
+            style="text-align:center; padding:30px; width:80%; max-width:300px; background:#161b22; border: 2px solid #58a6ff; border-radius: 8px;">
+            <h2 style="color:var(--accent-blue); margin-top:0; border-bottom:1px solid #30363d; padding-bottom:10px;">
+                GAME MENU</h2>
+            <div style="display:flex; flex-direction:column; gap:15px; margin-top:20px;">
+                <button onclick="game.saveGame(); ui.toggleOptions();" style="padding:15px; font-weight:bold;">SAVE
+                    GAME</button>
+                <button style="border-color:#da3633; color:#da3633; padding:15px;"
+                    onclick="if(confirm('Quit?')) location.reload()">QUIT GAME</button>
+                <button style="background:#21262d; border-color:#8b949e; padding:15px;"
+                    onclick="ui.toggleOptions()">CLOSE</button>
+                <div style="font-size:0.8rem; color:#8b949e;">themudev sp_games (c) 2026</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         class UI {
             constructor() {
                 this.selectedDiff = 'easy';
                 this.selectedFreq = 'normal';
+                this.initMobile();
+            }
+            initMobile() {
+                if (window.innerWidth <= 900) {
+                    // Move View Logic
+                    this.mobileView('factory', document.querySelectorAll('.mob-nav-btn')[1]);
+
+                    const wrapper = document.getElementById('mobile-header-wrapper');
+
+                    // 1. Move Resource Bar
+                    const resBar = document.getElementById('resource-bar');
+                    if (wrapper && resBar) {
+                        wrapper.appendChild(resBar); // Add after stats row
+                    }
+
+                    // 2. Move Top Bars
+                    const topBars = document.querySelector('.top-bars');
+                    if (wrapper && topBars) {
+                        wrapper.appendChild(topBars);
+                    }
+                }
+            }
+            mobileView(view, btn) {
+                // Reset Nav
+                document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+
+                // Hide All Panels
+                const panels = ['supply-chain', 'center-panel', 'market', 'log-panel'];
+                panels.forEach(p => {
+                    document.getElementById(p).classList.remove('mobile-visible');
+                    // Force hide via style to override flex/grid
+                    document.getElementById(p).style.display = 'none';
+                });
+
+                // Show Selected
+                if (view === 'supply') {
+                    const el = document.getElementById('supply-chain');
+                    el.style.display = 'flex';
+                    el.classList.add('mobile-visible');
+                } else if (view === 'factory') {
+                    const el = document.getElementById('center-panel');
+                    el.style.display = 'flex';
+                    el.classList.add('mobile-visible');
+                    this.switchTab('design');
+                } else if (view === 'market') {
+                    const el = document.getElementById('market');
+                    el.style.display = 'flex';
+                    el.classList.add('mobile-visible');
+                } else if (view === 'admin') {
+                    const el = document.getElementById('center-panel');
+                    el.style.display = 'flex';
+                    el.classList.add('mobile-visible');
+                    this.switchTab('admin');
+                } else if (view === 'logs') {
+                    const el = document.getElementById('log-panel');
+                    el.style.display = 'flex';
+                    el.classList.add('mobile-visible');
+                }
             }
             selectDiff(level, btn) {
                 this.selectedDiff = level;
@@ -1370,9 +2135,50 @@
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 document.getElementById('tab-' + tabName).classList.add('active');
             }
+            toggleOptions() {
+                if (window.innerWidth <= 900) {
+                    // Mobile: Toggle New Modal & Auto-Pause
+                    const modal = document.getElementById('mobile-options-modal');
+                    if (modal) {
+                        const isHidden = (modal.style.display === 'none' || modal.style.display === '');
+                        if (isHidden) {
+                            // OPENING: Pause Game
+                            modal.style.display = 'flex';
+                            if (!game.isPaused) {
+                                game.togglePause();
+                                // Hide specific pause overlay to avoid clutter behind menu
+                                const pauseOverlay = document.getElementById('pause-overlay');
+                                if (pauseOverlay) pauseOverlay.style.display = 'none';
+                            }
+                        } else {
+                            // CLOSING: Resume Game
+                            modal.style.display = 'none';
+                            if (game.isPaused) game.togglePause();
+                        }
+                    }
+                } else {
+                    // Desktop: Toggle Dropdown
+                    const dd = document.getElementById('options-dropdown');
+                    if (dd.classList.contains('show')) dd.classList.remove('show');
+                    else dd.classList.add('show');
+                }
+            }
+            toggleConsole() {
+                const bar = document.getElementById('debug-bar');
+                const input = document.getElementById('debug-input');
+                if (bar.style.display === 'none' || !bar.style.display) {
+                    bar.style.display = 'block';
+                    input.focus();
+                } else {
+                    bar.style.display = 'none';
+                }
+                // Close options too
+                document.getElementById('options-dropdown').classList.remove('show');
+            }
             closeModal() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
         }
         const ui = new UI();
+        window.ui = ui;
 
         // Data
         const ACCESSORIES = {
@@ -1400,10 +2206,21 @@
             geiger: { name: "Geiger Counter", price: 2500, weight: 1.5, power: 1.5 },
             encrypt: { name: "Encryption Mod", price: 5000, weight: 0.5, power: 3 },
 
-            // Tier 4 (Sci-Fi)
+            // Tier 4 (Sci-Fi / Frontier)
             holo_ads: { name: "Holo-Projector", price: 8000, weight: 3.0, power: 5 },
             cabin: { name: "Pax Cabin", price: 12000, weight: 15.0, power: 4 },
             ion: { name: "Ion Thruster", price: 25000, weight: 8.0, power: 10 },
+            drill: { name: "Asteroid Drill", price: 30000, weight: 20.0, power: 8 },
+            fusion: { name: "Fusion Cell", price: 50000, weight: 5.0, power: -5 }, // Negative power = Generator
+
+            // Specialized (Fire/Rescue/Space)
+            extinguisher: { name: "Extinguisher", price: 2000, weight: 5.0, power: 1 },
+            parachute: { name: "Safety Chute", price: 1500, weight: 2.0, power: 0 },
+            sonar: { name: "Sonar Array", price: 4000, weight: 3.0, power: 2 },
+            printer: { name: "3D Printer", price: 6000, weight: 6.0, power: 4 },
+            life_support: { name: "Life Support", price: 8000, weight: 10.0, power: 5 },
+            swarm_ai: { name: "Swarm AI", price: 15000, weight: 1.0, power: 8 },
+            payload_release: { name: "Payload Drop", price: 3000, weight: 2.0, power: 1 },
 
             // Legacy / Misc
             solar: { name: "Solar Array", price: 1500, weight: 4.0, power: -1 },
@@ -1413,46 +2230,60 @@
         };
 
         const TECH_DB = [
-            // Passive Upgrades
-            { id: 'bat_upg', name: 'Battery Efficiency', type: 'passive', cost: 6000, time: 25, desc: 'Increases Range', level: 0 },
-            { id: 'frm_upg', name: 'Alloy Composition', type: 'passive', cost: 6000, time: 25, desc: 'Increases Reliability', level: 0 },
-            { id: 'ai_upg', name: 'Firmware Update', type: 'passive', cost: 10000, time: 38, desc: 'Reduces AI Penalty', level: 0 },
+            // --- Civilian Tree (Logistics & General) ---
+            { id: 'bat_upg', name: 'Battery Efficiency', type: 'passive', cost: 6000, time: 25, desc: 'Increases Range', level: 0, tree: 'civilian' },
+            { id: 'frm_upg', name: 'Alloy Composition', type: 'passive', cost: 6000, time: 25, desc: 'Increases Reliability', level: 0, tree: 'civilian' },
+            { id: 'ai_upg', name: 'Firmware Update', type: 'passive', cost: 10000, time: 38, desc: 'Reduces AI Penalty', level: 0, tree: 'civilian' },
+            { id: 'unlock_cam', name: 'Optical Sensors', type: 'unlock', cost: 5000, time: 30, desc: 'Unlock Camera', locked: true, key: 'camera', tree: 'civilian' },
+            { id: 'unlock_gim', name: 'Stabilization', type: 'unlock', cost: 8000, time: 45, desc: 'Unlock Gimbal', locked: true, key: 'gimbal', tree: 'civilian' },
+            { id: 'unlock_holo', name: 'Holographic Ads', type: 'unlock', cost: 45000, time: 110, desc: '$$$ Media Contracts', locked: true, key: 'holo_ads', requires: 'gimbal', tree: 'civilian' },
 
-            // Tier 1 Unlocks (No Dependencies)
-            { id: 'unlock_cam', name: 'Optical Sensors', type: 'unlock', cost: 5000, time: 30, desc: 'Unlock Camera', locked: true, key: 'camera' },
-            { id: 'unlock_siren', name: 'Acoustics', type: 'unlock', cost: 3000, time: 20, desc: 'Unlock Siren', locked: true, key: 'siren' },
-            { id: 'unlock_spot', name: 'Hi-Lumns', type: 'unlock', cost: 4000, time: 25, desc: 'Unlock Spotlight', locked: true, key: 'spotlight' },
-            { id: 'unlock_solar', name: 'Photovoltaics', type: 'unlock', cost: 15000, time: 60, desc: 'Unlock Solar', locked: true, key: 'solar' },
-            { id: 'unlock_jam', name: 'Signal War', type: 'unlock', cost: 20000, time: 80, desc: 'Unlock Jammer', locked: true, key: 'jammer' },
-            { id: 'unlock_gim', name: 'Stabilization', type: 'unlock', cost: 8000, time: 45, desc: 'Unlock Gimbal', locked: true, key: 'gimbal' },
+            // --- Military Tree (Bomber & Stealth) ---
+            { id: 'unlock_siren', name: 'Acoustics', type: 'unlock', cost: 3000, time: 20, desc: 'Unlock Siren', locked: true, key: 'siren', tree: 'military' },
+            { id: 'unlock_jam', name: 'Signal War', type: 'unlock', cost: 20000, time: 80, desc: 'Unlock Jammer', locked: true, key: 'jammer', tree: 'military' },
+            { id: 'unlock_therm', name: 'Thermal Imaging', type: 'unlock', cost: 40000, time: 100, desc: 'Unlock Thermal', locked: true, key: 'thermal', requires: 'unlock_siren', tree: 'military' }, // Fixed req
+            { id: 'unlock_nv', name: 'Low Light Ops', type: 'unlock', cost: 12000, time: 50, desc: 'Unlock Night Vision', locked: true, key: 'nightvision', requires: 'unlock_cam', tree: 'military' },
+            { id: 'unlock_enc', name: 'Quantum Crypto', type: 'unlock', cost: 50000, time: 120, desc: 'Unlock Encryption', locked: true, key: 'encrypt', requires: 'unlock_jam', tree: 'military' },
+            { id: 'stealth_upg', name: 'Stealth Plating', type: 'passive', cost: 15000, time: 60, desc: 'Max Stealth', level: 0, locked: true, requires: 'unlock_nv', tree: 'military' },
+            { id: 'bomber_bay', name: 'Payload Release', type: 'unlock', cost: 25000, time: 70, desc: 'Unlock Bomb Bay', locked: true, key: 'bomber', requires: 'unlock_jam', tree: 'military' },
 
-            // Tier 2 Unlocks (Requires Tier 1 or specific base types)
-            { id: 'unlock_sen', name: 'Bio-Scanning', type: 'unlock', cost: 7000, time: 35, desc: 'Unlock Ag-Sensor', locked: true, key: 'sensor' },
-            { id: 'unlock_claw', name: 'Heavy Servos', type: 'unlock', cost: 6000, time: 30, desc: 'Unlock Claw', locked: true, key: 'claw' },
-            { id: 'unlock_med', name: 'Bio-Logistics', type: 'unlock', cost: 5000, time: 30, desc: 'Unlock Med-Kit', locked: true, key: 'medkit' },
+            // --- Industrial Tree (Builder & Heavy Lift) ---
+            { id: 'unlock_spot', name: 'Hi-Lumns', type: 'unlock', cost: 4000, time: 25, desc: 'Unlock Spotlight', locked: true, key: 'spotlight', tree: 'industrial' },
+            { id: 'unlock_claw', name: 'Heavy Servos', type: 'unlock', cost: 6000, time: 30, desc: 'Unlock Claw', locked: true, key: 'claw', tree: 'industrial' },
+            { id: 'unlock_winch', name: 'Tac-Winch', type: 'unlock', cost: 15000, time: 60, desc: 'Unlock Winch', locked: true, key: 'winch', requires: 'unlock_claw', tree: 'industrial' }, // Fixed req
+            { id: 'unlock_mag', name: 'Magnetic Field', type: 'unlock', cost: 10000, time: 45, desc: 'Unlock Magnet', locked: true, key: 'magnet', requires: 'unlock_claw', tree: 'industrial' },
+            { id: 'printer_nozzle', name: '3D Print Nozzle', type: 'unlock', cost: 12000, time: 50, desc: 'Unlock Printer', locked: true, key: 'printer', requires: 'unlock_spot', tree: 'industrial' },
+            { id: 'unlock_swarm', name: 'Swarm AI', type: 'passive', cost: 60000, time: 130, desc: '-20% Build Time', locked: true, key: 'swarm_ai', requires: 'ai_upg', tree: 'industrial' },
 
-            { id: 'unlock_nv', name: 'Low Light Ops', type: 'unlock', cost: 12000, time: 50, desc: 'Unlock Night Vision', locked: true, key: 'nightvision', requires: 'camera' },
-            { id: 'unlock_mag', name: 'Magnetic Field', type: 'unlock', cost: 10000, time: 45, desc: 'Unlock Magnet', locked: true, key: 'magnet', requires: 'claw' },
-            { id: 'unlock_def', name: 'Adv. Life Support', type: 'unlock', cost: 9000, time: 40, desc: 'Unlock Defibrillator', locked: true, key: 'defib', requires: 'medkit' },
-            { id: 'unlock_snif', name: 'Chemo-Detection', type: 'unlock', cost: 11000, time: 45, desc: 'Unlock Gas Sniffer', locked: true, key: 'sniffer', requires: 'sensor' },
-            { id: 'unlock_spray', name: 'Fluid Dynamics', type: 'unlock', cost: 9000, time: 50, desc: 'Unlock Sprayer', locked: true, key: 'sprayer' },
+            // --- Aquatic Tree (Submarine) ---
+            { id: 'waterproof', name: 'Waterproofing', type: 'passive', cost: 3000, time: 30, desc: 'Rain Flight', level: 0, tree: 'aquatic' },
+            { id: 'unlock_solar', name: 'Photovoltaics', type: 'unlock', cost: 15000, time: 60, desc: 'Unlock Solar', locked: true, key: 'solar', tree: 'aquatic' }, // Solar fits environment
+            { id: 'hydro_prop', name: 'Hydro-Thrusters', type: 'passive', cost: 8000, time: 40, desc: 'Underwater Ops', level: 0, tree: 'aquatic' },
+            { id: 'unlock_sonar', name: 'Sonar Array', type: 'unlock', cost: 6000, time: 35, desc: 'Unlock Sonar', locked: true, key: 'sonar', tree: 'aquatic' },
+            { id: 'abyssal_hull', name: 'Abyssal Hull', type: 'passive', cost: 12000, time: 55, desc: 'Deep Dive', level: 0, requires: 'hydro_prop', tree: 'aquatic' },
+            { id: 'unlock_raft', name: 'Deployable Float', type: 'unlock', cost: 22000, time: 70, desc: 'Unlock Life Raft', locked: true, key: 'raft', tree: 'aquatic' },
 
-            // Tier 3 Unlocks (Requires Tier 2)
-            { id: 'unlock_lid', name: 'Laser Mapping', type: 'unlock', cost: 25000, time: 75, desc: 'Unlock LIDAR', locked: true, key: 'lidar', requires: 'nightvision' },
-            { id: 'unlock_therm', name: 'Thermal Imaging', type: 'unlock', cost: 40000, time: 100, desc: 'Unlock Thermal', locked: true, key: 'thermal', requires: 'lidar' },
-            { id: 'unlock_winch', name: 'Tac-Winch', type: 'unlock', cost: 15000, time: 60, desc: 'Unlock Winch', locked: true, key: 'winch', requires: 'magnet' },
-            { id: 'unlock_net', name: 'Non-Lethal', type: 'unlock', cost: 18000, time: 65, desc: 'Unlock Net Launcher', locked: true, key: 'net', requires: 'winch' },
-            { id: 'unlock_raft', name: 'Deployable Float', type: 'unlock', cost: 22000, time: 70, desc: 'Unlock Life Raft', locked: true, key: 'raft', requires: 'defib' },
-            { id: 'unlock_seed', name: 'Aerial Sowing', type: 'unlock', cost: 16000, time: 60, desc: 'Unlock Seeder', locked: true, key: 'seeder', requires: 'sprayer' },
-            { id: 'unlock_geiger', name: 'Rad. Shielding', type: 'unlock', cost: 30000, time: 90, desc: 'Unlock Geiger', locked: true, key: 'geiger', requires: 'sniffer' },
-            { id: 'unlock_enc', name: 'Quantum Crypto', type: 'unlock', cost: 50000, time: 120, desc: 'Unlock Encryption', locked: true, key: 'encrypt', requires: 'jammer' },
+            // Tier 2-3 Misc
+            { id: 'unlock_sen', name: 'Bio-Scanning', type: 'unlock', cost: 7000, time: 35, desc: 'Unlock Ag-Sensor', locked: true, key: 'sensor', tree: 'civilian' },
+            { id: 'unlock_med', name: 'Bio-Logistics', type: 'unlock', cost: 5000, time: 30, desc: 'Unlock Med-Kit', locked: true, key: 'medkit', tree: 'civilian' },
+            { id: 'unlock_lid', name: 'Laser Mapping', type: 'unlock', cost: 25000, time: 75, desc: 'Unlock LIDAR', locked: true, key: 'lidar', requires: 'unlock_cam', tree: 'civilian' },
 
-            // Tier 4 Unlocks (Advanced / Sci-Fi)
-            { id: 'unlock_holo', name: 'Holographic Ads', type: 'unlock', cost: 45000, time: 110, desc: '$$$ Media Contracts', locked: true, key: 'holo_ads', requires: 'gimbal' },
-            { id: 'unlock_swarm', name: 'Swarm AI', type: 'passive', cost: 60000, time: 130, desc: '-20% Build Time', locked: true, key: 'swarm_ai', requires: 'ai_upg' },
-            { id: 'unlock_pax', name: 'Passenger Cabins', type: 'unlock', cost: 75000, time: 150, desc: 'Unlock Pax Cabins', locked: true, key: 'cabin', requires: 'raft' },
-            { id: 'unlock_mars', name: 'Zero-G Prop.', type: 'unlock', cost: 100000, time: 180, desc: 'Unlock Ion Thruster', locked: true, key: 'ion', requires: 'geiger' },
-            { id: 'unlock_fusion', name: 'Fusion Cells', type: 'passive', cost: 120000, time: 200, desc: '+200% Range', locked: true, key: 'fusion', requires: 'bat_upg' }
+            // --- Specialized Upgrades (Rescue / Agri / Police) ---
+            { id: 'unlock_defib', name: 'Rapid Response', type: 'unlock', cost: 12000, time: 45, desc: 'Unlock Defibrillator', locked: true, key: 'defib', requires: 'unlock_med', tree: 'civilian' },
+            { id: 'unlock_spray', name: 'Crop Sprayer', type: 'unlock', cost: 8000, time: 40, desc: 'Unlock Sprayer', locked: true, key: 'sprayer', requires: 'unlock_sen', tree: 'civilian' },
+            { id: 'unlock_seed', name: 'Auto-Seeder', type: 'unlock', cost: 15000, time: 60, desc: 'Unlock Seeder', locked: true, key: 'seeder', requires: 'unlock_spray', tree: 'civilian' },
+
+            { id: 'unlock_sniff', name: 'Hazmat Sensor', type: 'unlock', cost: 10000, time: 50, desc: 'Unlock Gas Sniffer', locked: true, key: 'sniffer', requires: 'unlock_sen', tree: 'industrial' },
+            { id: 'unlock_geiger', name: 'Radiation Shield', type: 'unlock', cost: 18000, time: 70, desc: 'Unlock Geiger Ctr', locked: true, key: 'geiger', requires: 'unlock_sniff', tree: 'industrial' },
+
+            { id: 'unlock_net', name: 'Interdiction', type: 'unlock', cost: 20000, time: 65, desc: 'Unlock Net Launcher', locked: true, key: 'net', requires: 'unlock_winch', tree: 'military' },
+
+            // --- Frontier Tree (Space & Future) ---
+            { id: 'frontier_proto', name: 'Mk-1 Prototype', type: 'passive', cost: 50000, time: 100, desc: 'Unlock Frontier Tree', level: 0, tree: 'frontier' },
+            { id: 'unlock_ion', name: 'Ion Propulsion', type: 'unlock', cost: 100000, time: 150, desc: 'Unlock Ion Thruster', locked: true, key: 'ion', requires: 'frontier_proto', tree: 'frontier' },
+            { id: 'unlock_fusion', name: 'Cold Fusion', type: 'unlock', cost: 250000, time: 300, desc: 'Unlock Fusion Cell', locked: true, key: 'fusion', requires: 'unlock_ion', tree: 'frontier' },
+            { id: 'unlock_drill', name: 'Zero-G Mining', type: 'unlock', cost: 150000, time: 200, desc: 'Unlock Drill', locked: true, key: 'drill', requires: 'frontier_proto', tree: 'frontier' },
+            { id: 'unlock_cabin', name: 'Life Support', type: 'unlock', cost: 75000, time: 120, desc: 'Unlock Pax Cabin', locked: true, key: 'cabin', requires: 'frontier_proto', tree: 'frontier' }
         ];
 
         const CLIENTS = {
@@ -1475,7 +2306,10 @@
             { id: 'sup_mot_1', type: 'motor', name: 'Rotors R Us', loc: 'Shenzhen', dist: 'global', maxStock: 200, baseMod: 0.9 },
             { id: 'sup_mot_2', type: 'motor', name: 'Precision Drive', loc: 'Zurich', dist: 'national', maxStock: 150, baseMod: 1.4 },
             { id: 'sup_chi_1', type: 'chip', name: 'Silicon Vly', loc: 'California', dist: 'national', maxStock: 100, baseMod: 1.2 },
-            { id: 'sup_chi_2', type: 'chip', name: 'Taiwan Semi', loc: 'Hsinchu', dist: 'global', maxStock: 300, baseMod: 1.0 }
+            { id: 'sup_chi_2', type: 'chip', name: 'Taiwan Semi', loc: 'Hsinchu', dist: 'global', maxStock: 300, baseMod: 1.0 },
+            { id: 'sup_bat_1', type: 'battery', name: 'Voltaic Cells Inc.', loc: 'Local Tech Park', dist: 'local', maxStock: 150, baseMod: 0.9 },
+            { id: 'sup_bat_2', type: 'battery', name: 'National Power Grid', loc: 'Nevada Gigafactory', dist: 'national', maxStock: 400, baseMod: 1.1 },
+            { id: 'sup_bat_3', type: 'battery', name: 'Global Energy Corp', loc: 'Seoul', dist: 'global', maxStock: 600, baseMod: 1.0 }
         ];
 
         const CERTIFICATIONS = [
@@ -1485,19 +2319,41 @@
             { id: 'military', name: 'Military Spec', cost: 500000, reqRep: 60, reqRel: 98, desc: "Top-level clearance for defense contracts." }
         ];
 
+        // Global click to close options
+        window.onclick = function (event) {
+            if (!event.target.matches('.options-btn')) {
+                const dd = document.getElementById('options-dropdown');
+                if (dd && dd.classList.contains('show')) {
+                    dd.classList.remove('show');
+                }
+            }
+        }
+
         const EVENTS = [
             { id: 'mining_strike', title: "Mining Strikes", type: 'news', desc: "Global metal miners go on strike demanding better safety.", duration: 3, effect: { supply_lock: ['metal'], price_mod: { metal: 1.5, motor: 1.2 } } },
             { id: 'chip_shortage', title: "Chip Shortage", type: 'news', desc: "Factory fire in Taiwan disrupts semiconductor supply.", duration: 4, effect: { supply_lock: ['chip'], price_mod: { chip: 2.0 } } },
             { id: 'trade_war', title: "Trade War", type: 'news', desc: "International tariffs hit high-tech imports.", duration: 5, effect: { price_mod: { chip: 1.5, motor: 1.5, poly: 1.3 } } },
             { id: 'global_war', title: "Global War", type: 'news', desc: "Global war disrupts supply chains.", duration: 24, effect: { price_mod: { chip: 3, motor: 2.3, poly: 2.1 } } },
-            { id: 'lithium_find', title: "Lithium Discovery", type: 'news', desc: "Massive lithium deposits found! Battery costs drop.", duration: 6, effect: { price_mod: { metal: 0.8 } } }, // Simplifying battery to metal correlation
+            { id: 'lithium_find', title: "Lithium Discovery", type: 'news', desc: "Massive lithium deposits found! Battery costs drop.", duration: 6, effect: { price_mod: { battery: 0.6 } } },
             { id: 'tech_boom', title: "Tech Sector Boom", type: 'news', desc: "High demand for semiconductors.", duration: 5, effect: { price_mod: { chip: 1.4 } } },
             { id: 'plastic_glut', title: "Plastic Surplus", type: 'news', desc: "Recycling breakthrough floods market with polymers.", duration: 4, effect: { price_mod: { poly: 0.6 } } },
             { id: 'motor_dump', title: "Competitor Bankruptcy", type: 'news', desc: "Bankrupt rival liquidates motor inventory.", duration: 3, effect: { price_mod: { motor: 0.7 } } },
-            { id: 'ai_regs', title: "AI Regulations", type: 'news', desc: "Strict AI laws increase development costs.", duration: 8, effect: { price_mod: { chip: 1.2 } } }, // Abstracted effect
-            { id: 'tech_boom', title: "Tech Boom", type: 'tweet', desc: "@TechTrendz: Drone stocks are soaring! Demand is up! 📈 #drones #investing", duration: 3, effect: { demand_mod: 1.5 } },
+            { id: 'ai_regs', title: "AI Regulations", type: 'news', desc: "Strict AI laws increase development costs.", duration: 8, effect: { price_mod: { chip: 1.2 } } },
+            { id: 'tech_tweet', title: "Tech Boom", type: 'tweet', desc: "@TechTrendz: Drone stocks are soaring! Demand is up! 📈 #drones #investing", duration: 3, effect: { demand_mod: 1.5 } },
             { id: 'reg_crackdown', title: "Regulations", type: 'news', desc: "New airspace regulations grounding non-certified drones.", duration: 4, effect: { demand_mod: 0.5 } },
-            { id: 'oil_crash', title: "Oil Crash", type: 'news', desc: "Polymer prices drop as oil hits record lows.", duration: 3, effect: { price_mod: { poly: 0.6 } } }
+            { id: 'oil_crash', title: "Oil Crash", type: 'news', desc: "Polymer prices drop as oil hits record lows.", duration: 3, effect: { price_mod: { poly: 0.6 } } },
+
+            // New Events
+            { id: 'solar_flare', title: "Solar Flare", type: 'crisis', desc: "Geomagnetic storm disrupts electronics globally.", duration: 2, effect: { price_mod: { chip: 1.3 } } },
+            { id: 'viral_video', title: "Viral Video", type: 'tweet', desc: "@InfluencerX: OMG checking out this new drone! So cool! 🤩 #viral", duration: 3, effect: { demand_mod: 1.5 } },
+            { id: 'battery_recall', title: "Battery Recall", type: 'news', desc: "Major manufacturer recalls lithium cells due to fire risk.", duration: 4, effect: { price_mod: { battery: 1.4 }, supply_lock: ['battery'] } },
+            { id: 'cyber_attack', title: "Cyber Attack", type: 'crisis', desc: "Ransomware hits global logistics hubs.", duration: 3, effect: { price_mod: { motor: 1.2 }, price_mod: { chip: 1.2 } } },
+            { id: 'startup_grant', title: "Gov Grant", type: 'news', desc: "Government subsidies for tech manufacturing approved.", duration: 6, effect: { price_mod: { metal: 0.8, poly: 0.8 } } },
+            { id: 'spy_scandal', title: "Spy Scandal", type: 'news', desc: "Drones implicated in corporate espionage scandal.", duration: 4, effect: { demand_mod: 0.9 } },
+            { id: 'influencer_hype', title: "Drone Racing League", type: 'tweet', desc: "Drone racing is the new F1! Everyone wants a fast drone now.", duration: 5, effect: { demand_mod: 1.2 } },
+            { id: 'heavy_winds', title: "Heavy Winds", type: 'news', desc: "Severe global weather patterns ground flights.", duration: 2, effect: { demand_mod: 0.7 } },
+            { id: 'ai_breakthrough', title: "AI Breakthrough", type: 'news', desc: "Open-source autonomous flight algorithms released.", duration: 12, effect: { price_mod: { chip: 0.8 } } },
+            { id: 'meteor_shower', title: "Meteor Shower", type: 'news', desc: "Rare metals harvested from impact sites.", duration: 4, effect: { price_mod: { metal: 0.5 } } }
         ];
 
         class Game {
@@ -1505,10 +2361,10 @@
                 this.month = 1; this.monthDuration = 180; this.timer = 0;
                 this.cash = 0; this.reputation = 0;
 
-                this.res = { metal: 50, poly: 50, motor: 50, chip: 50 };
+                this.res = { metal: 50, poly: 50, motor: 50, chip: 50, battery: 50 };
                 Object.keys(ACCESSORIES).forEach(k => this.res[k] = 0);
                 this.maxMats = 200;
-                this.basePrices = { metal: 15, poly: 40, motor: 120, chip: 600 };
+                this.basePrices = { metal: 15, poly: 40, motor: 120, chip: 600, battery: 80 };
                 this.currentPrices = {};
                 this.supplierPrices = {};
                 this.supplierStock = {};
@@ -1628,6 +2484,70 @@
                 }
             }
 
+            // --- Controls & Debug ---
+            initializeControls() {
+                this.debugInstantWait = false; // Init Flag
+                console.log("Initializing Controls...");
+                document.addEventListener('keydown', (e) => {
+                    // Toggle Console (w)
+                    if (e.key === 'w' && document.activeElement.tagName !== 'INPUT') {
+                        ui.toggleConsole();
+                    }
+                    // Execute Command (Enter)
+                    if (e.key === 'Enter' && document.activeElement.id === 'debug-input') {
+                        console.log("Key 'Enter' pressed in debug input");
+                        this.processDebugCommand(document.getElementById('debug-input').value);
+                    }
+                });
+            }
+
+            processDebugCommand(cmdStr) {
+                console.log("Processing Command:", cmdStr);
+                const parts = cmdStr.trim().split(' ');
+                const cmd = parts[0];
+                const val = parseInt(parts[1]);
+
+                if (cmd === 'money') {
+                    if (!isNaN(val)) {
+                        this.cash += val;
+                        this.log(`DEBUG: Added $${val.toLocaleString()}`, "success");
+                        this.updateUI();
+                    }
+                } else if (cmd === 'reputation') {
+                    if (!isNaN(val)) {
+                        this.reputation += val;
+                        this.log(`DEBUG: Added ${val} Rep`, "success");
+                        this.updateUI();
+                    }
+                } else if (cmd === 'addMonths') {
+                    if (!isNaN(val)) {
+                        for (let i = 0; i < val; i++) this.nextMonth();
+                        this.log(`DEBUG: Skipped ${val} months`, "success");
+                    }
+                } else if (cmd === 'wait') {
+                    if (parts[1] === 'true') {
+                        this.debugInstantWait = true;
+                        this.log("DEBUG: Instant Wait ENABLED", "success");
+                    } else {
+                        this.debugInstantWait = false;
+                        this.log("DEBUG: Instant Wait DISABLED", "info");
+                    }
+                } else if (cmd === 'help') {
+                    this.log("Available Commands:", "info");
+                    this.log("- money [amount]", "info");
+                    this.log("- reputation [amount]", "info");
+                    this.log("- addMonths [amount]", "info");
+                    this.log("- wait [true/false] (Instant Timers)", "info");
+                } else {
+                    this.log(`Unknown Command: ${cmd}. Type 'help' for list.`, "warn");
+                }
+
+                // Close and Clear
+                document.getElementById('debug-input').value = '';
+                document.getElementById('debug-bar').style.display = 'none';
+                document.getElementById('options-dropdown').classList.remove('show');
+            }
+
             start() {
                 const name = document.getElementById('company-name-input').value || "Drone Corp";
                 const diff = ui.selectedDiff;
@@ -1641,7 +2561,7 @@
                 if (freq === 'chaos') this.chaosMode = true;
                 else this.chaosMode = false;
 
-                this.res.metal = 50; this.res.poly = 50; this.res.motor = 50; this.res.chip = 50;
+                this.res.metal = 50; this.res.poly = 50; this.res.motor = 50; this.res.chip = 50; this.res.battery = 50;
                 document.getElementById('start-screen').style.display = 'none';
                 document.getElementById('game-container').classList.add('active');
 
@@ -1651,6 +2571,7 @@
                 this.updateDesign();
                 this.updateUI();
                 this.loopId = setInterval(() => this.tick(), 1000);
+                this.initializeControls();
                 this.log(`System Online. Mode: ${diff.toUpperCase()} | Entropy: ${freq.toUpperCase()}`, "success");
             }
 
@@ -1679,6 +2600,19 @@
                     document.getElementById('research-bar-fill').style.width = pct + '%';
                     if (elapsed >= this.activeResearch.duration) {
                         this.completeResearch();
+                    } else {
+                        // Ensure text is correct
+                        // Self-heal: If name is missing, look it up
+                        if (!this.activeResearch.name && typeof TECH_DB !== 'undefined') {
+                            const tech = TECH_DB.find(t => t.id === this.activeResearch.id);
+                            if (tech) this.activeResearch.name = tech.name;
+                        }
+
+                        // Ensure text is correct
+                        const t = document.getElementById('research-text');
+                        if (t && t.innerText !== `R&D: ${this.activeResearch.name}`) {
+                            t.innerText = `R&D: ${this.activeResearch.name}`;
+                        }
                     }
                 }
 
@@ -1966,7 +2900,58 @@
                     `I wish ${tag} made cars. Or spaceships.`,
                     `Getting married soon, hope ${tag} can wrap the venue in drones.`,
                     `Does ${tag} accept crypto?`,
-                    `I heard ${tag} is collaborating with the military on 'Project X'.`
+                    `I heard ${tag} is collaborating with the military on 'Project X'.`,
+                    // Expanded Thoughts
+                    `I named my drone 'Fluffy'. Don't judge.`,
+                    `Why do ${tag} drones look cooler than my car?`,
+                    `My grandma just bought a ${tag} drone. She's 85.`,
+                    `Can I teach my ${tag} drone to walk the dog?`,
+                    `Lost my drone in a tree. ${tag} support sent a rescue drone. Meta.`,
+                    `The battery life on the new ${tag} models is insane!`,
+                    `Just raced a ${tag} drone against a hawk. Hawk was not amused.`,
+                    `I swear my ${tag} drone winks at me when I turn it on.`,
+                    `Is it legal to attach a disco ball to a ${tag} drone?`,
+                    `I use my ${tag} drone to check if the mailman has arrived. Laziness lvl 100.`,
+                    `${tag} needs to release a gold-plated edition.`,
+                    `Saw a ${tag} drone formation at the stadium. Better than fireworks.`,
+                    `If aliens invade, I hope they bring ${tag} tech.`,
+                    `My kid drew a picture of a ${tag} drone. It's on the fridge.`,
+                    `Does ${tag} offer flight insurance? I'm a terrible pilot.`,
+                    `I think my ${tag} drone is judging my messy backyard.`,
+                    `The humming sound of ${tag} drones is my white noise.`,
+                    `Can we get customizable skins for ${tag} drones? Plz!`,
+                    `I tried to deliver a sandwich with my ${tag} drone. The squirrel got it.`,
+                    `Alert: ${tag} servers might be down? My app is lagging.`,
+                    `Just converted my garage into a ${tag} charging station.`,
+                    `Who needs a security guard when you have a ${tag} patrol?`,
+                    `I wonder if ${tag} uses recycled materials?`,
+                    `The range on these things is scary good.`,
+                    `Can I charge my phone with a ${tag} battery?`,
+                    `I want to live in a house built by ${tag} drones.`,
+                    `My ${tag} drone survived a rainstorm. Impressive.`,
+                    `Is there a ${tag} fan club? Where do I sign up?`,
+                    `I'm starting a ${tag} drone racing league in my basement.`,
+                    `When will ${tag} release a submarine drone?`,
+                    `My ${tag} drone is the best pet I've ever had.`,
+                    `Does ${tag} ship to Antarctica? asking for a researcher friend.`,
+                    `${tag} customer service is actually helpful. Rare.`,
+                    `I found a hidden "dance mode" in the ${tag} settings!`,
+                    `Can ${tag} drones deliver tacos? Asking the real questions.`,
+                    `My ${tag} drone photobombed my wedding photos.`,
+                    `I'd trust a ${tag} drone with my life. Maybe.`,
+                    `Just saw a ${tag} billboard. They are everywhere.`,
+                    `I think ${tag} is secretly run by cats.`,
+                    `Can I 3D print parts for my ${tag}?`,
+                    `The ${tag} community is toxic. Just fly and chill.`,
+                    `I'm waiting for the ${tag} jetpack.`,
+                    `My ${tag} drone is smarter than my ex.`,
+                    `Does ${tag} have a bug bounty program? I found a glitch.`,
+                    `I'm buying ${tag} stock for my kids.`,
+                    `The future is autonomous, and it says ${tag}.`,
+                    `I need a ${tag} drone that can fold laundry.`,
+                    `Why is ${tag} trending on Twitter? What did they do?`,
+                    `I saw a ${tag} drone helping a firefighter. Respect.`,
+                    `Can I date a ${tag} engineer?`
                 ];
 
                 // Prioritize chatter if sales are low, otherwise mix
@@ -2042,8 +3027,39 @@
 
             // --- Tech ---
             renderTechTree() {
-                const div = document.getElementById('tech-list');
-                div.innerHTML = '';
+                const container = document.getElementById('tech-list');
+                if (!container) return;
+                container.innerHTML = '';
+                container.style.display = 'grid';
+                container.style.gridTemplateColumns = 'repeat(5, 1fr)'; // Increased to 5 columns
+                container.style.gap = '10px';
+                container.style.alignItems = 'start'; // Align top
+
+                const speedMult = 0.75 + ((this.rdLevel - 1) * 0.25);
+                if (!this.activeResearch) {
+                    document.getElementById('research-text').innerHTML = `R&D Lab (Speed: <span style="color:var(--accent-green)">${speedMult.toFixed(2)}x</span>)`;
+                }
+
+                const trees = {
+                    civilian: { icon: "📦", title: "Civilian" },
+                    military: { icon: "⚔️", title: "Military" },
+                    industrial: { icon: "🏗️", title: "Industrial" },
+                    aquatic: { icon: "💧", title: "Aquatic" },
+                    frontier: { icon: "🚀", title: "Frontier" }
+                };
+
+                const cols = {};
+                Object.keys(trees).forEach(key => {
+                    const col = document.createElement('div');
+                    col.style.background = '#0d1117';
+                    col.style.padding = '10px';
+                    col.style.borderRadius = '6px';
+                    col.style.border = '1px solid #30363d';
+                    col.innerHTML = `<div style="text-align:center; font-weight:bold; color:var(--accent-cyan); margin-bottom:10px; border-bottom:1px solid #30363d; padding-bottom:5px;">${trees[key].icon} ${trees[key].title}</div>`;
+                    container.appendChild(col);
+                    cols[key] = col;
+                });
+
                 TECH_DB.forEach(t => {
                     let btnText = "Research";
                     let disabled = "";
@@ -2051,9 +3067,34 @@
                     let info = "";
 
                     // Check Dependencies
+                    // Check Dependencies
                     if (t.requires) {
-                        const hasReq = this.unlockedModules.includes(t.requires);
-                        const reqName = ACCESSORIES[t.requires] ? ACCESSORIES[t.requires].name : t.requires;
+                        let hasReq = false;
+
+                        // ID lookup fix: dependencies refer to ID, but unlockedModules stores KEY
+                        const reqTech = TECH_DB.find(rt => rt.id === t.requires);
+                        if (reqTech) {
+                            if (reqTech.type === 'passive') {
+                                if (reqTech.level > 0) hasReq = true;
+                            } else {
+                                hasReq = this.unlockedModules.includes(reqTech.key);
+                            }
+                        } else {
+                            // Legacy/Accessory check
+                            hasReq = this.unlockedModules.includes(t.requires);
+                        }
+
+                        // Also check ACCESSORIES if key matches (legacy support)
+                        if (ACCESSORIES[t.requires]) {
+                            // if it refers to a raw accessory key directly
+                            if (this.unlockedModules.includes(t.requires)) hasReq = true;
+                        }
+
+                        // Get display name
+                        let reqName = t.requires;
+                        if (reqTech) reqName = reqTech.name;
+                        else if (ACCESSORIES[t.requires]) reqName = ACCESSORIES[t.requires].name;
+
                         if (!hasReq) {
                             disabled = "disabled";
                             info = `<div style="color:#da3633; font-size:0.75rem;">Requires: ${reqName}</div>`;
@@ -2070,15 +3111,19 @@
 
                     const card = document.createElement('div');
                     card.className = 'tech-card';
+                    card.style.marginBottom = '8px';
                     card.innerHTML = `
-                        <h4>${t.name}</h4>
+                        <div style="font-weight:bold; font-size:0.9rem;">${t.name}</div>
                         <div class="tech-meta">${t.desc}</div>
                         ${info}
-                        <div class="tech-meta">Cost: $${t.cost} | Time: ${t.time}s</div>
-                        <button class="${cls}" ${disabled} onclick="game.startResearch('${t.id}')">${btnText}</button>
+                        <div class="tech-meta" style="margin-top:2px;">$${t.cost.toLocaleString()} | ${t.time}s</div>
+                        <button class="${cls}" style="margin-top:5px; width:100%;" ${disabled} onclick="game.startResearch('${t.id}')">${btnText}</button>
                     `;
-                    div.appendChild(card);
+
+                    const treeKey = t.tree || 'civilian';
+                    if (cols[treeKey]) cols[treeKey].appendChild(card);
                 });
+                this.syncUnlockUI();
             }
 
             startResearch(id) {
@@ -2089,9 +3134,10 @@
                 // R&D Speed Logic
                 // Base 0.75 + (0.25 * (Lvl-1)) -> Lvl 1 = 0.75x, Lvl 2 = 1.0x, Lvl 3 = 1.25x
                 const speedMult = 0.75 + ((this.rdLevel - 1) * 0.25);
-                const realTime = tech.time / speedMult;
+                let realTime = tech.time / speedMult;
+                if (this.debugInstantWait) realTime = 0.5; // Instant
 
-                this.activeResearch = { id: id, startTime: Date.now(), duration: realTime };
+                this.activeResearch = { id: id, name: tech.name, startTime: Date.now(), duration: realTime };
                 document.getElementById('research-text').innerText = `R&D: ${tech.name}`;
                 this.renderTechTree(); this.updateUI();
             }
@@ -2108,7 +3154,9 @@
                     tech.locked = false;
                     this.unlockedModules.push(tech.key);
                     const opt = document.getElementById(`opt-${tech.key}`);
+                    const opt2 = document.getElementById(`opt2-${tech.key}`);
                     if (opt) { opt.disabled = false; opt.text = ACCESSORIES[tech.key].name; }
+                    if (opt2) { opt2.disabled = false; opt2.text = ACCESSORIES[tech.key].name; }
                 }
                 this.log(`Research Complete: ${tech.name}`, "success");
                 this.activeResearch = null;
@@ -2383,7 +3431,7 @@
                     container.appendChild(delDiv);
                 }
 
-                const groups = { metal: [], poly: [], motor: [], chip: [] };
+                const groups = { metal: [], poly: [], motor: [], chip: [], battery: [] };
                 SUPPLIERS.forEach(s => groups[s.type].push(s));
 
                 for (let type in groups) {
@@ -2467,49 +3515,91 @@
 
             renderSiloInventory() {
                 try {
-                    const list = document.getElementById('silo-inventory-list');
+                    const list = document.getElementById('inventory-list');
                     if (!list) return;
 
                     let html = '';
-                    let totalItems = 0;
+                    let totalMats = 0;   // Raw + Components -> Silo
+                    let totalDrones = 0; // Drones -> Warehouse
 
                     // 1. Raw Materials
-                    const raw = ['metal', 'poly', 'motor', 'chip'];
+                    html += `<div style="font-size:0.75rem; color:#8b949e; border-bottom:1px solid #30363d; margin-bottom:5px; padding-top:10px;">RAW MATERIALS</div>`;
+                    const raw = ['metal', 'poly', 'motor', 'chip', 'battery'];
                     raw.forEach(key => {
                         const qty = this.res[key] || 0;
-                        totalItems += qty;
+                        totalMats += qty;
 
                         let name = key.charAt(0).toUpperCase() + key.slice(1);
                         if (key === 'poly') name = 'Polymers';
                         if (key === 'motor') name = 'Motors';
 
                         html += `<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #21262d; font-size:0.85rem; color:#c9d1d9;">` +
-                            `<span>${name}</span><span style="font-family:monospace; color:white;">${qty}</span></div>`;
+                            `<span>${name}</span><span style="font-family:monospace; color:white;">${this.formatNumber(qty)}</span></div>`;
                     });
 
-                    // 2. Accessories
+                    // 2. Manufactured Drones
+                    if (this.inventory && this.inventory.length > 0) {
+                        html += `<div style="font-size:0.75rem; color:#8b949e; border-bottom:1px solid #30363d; margin-bottom:5px; padding-top:10px;">MANUFACTURED DRONES</div>`;
+                        this.inventory.forEach((b, i) => {
+                            totalDrones += b.qty; // Drones count to Warehouse
+                            let accIcon = "";
+                            if (b.stats.acc !== 'none') accIcon = "🧩";
+
+                            html += `
+                                <div class="inv-item" style="margin-bottom: 5px;">
+                                    <div style="font-weight:bold; font-size:0.9rem; color:#7ee787;">${accIcon} ${b.name} (x${b.qty})</div>
+                                    <table class="spec-table" style="margin-top:2px; margin-bottom:2px;">
+                                        <tr><td>Spd:${b.stats.speed.toFixed(0)}</td><td>Acc:${b.stats.acc}</td></tr>
+                                        <tr><td>Ld:${b.stats.load.toFixed(0)}</td><td>Rel:${b.stats.reliability}%</td></tr>
+                                    </table>
+                                    <button class="btn-small" style="width:100%; margin-top:2px; get-color:#da3633; color:#da3633; border-color:#da3633;" onclick="game.scrap(${i})">Scrap</button>
+                                </div>`;
+                        });
+                    } else {
+                        html += `<div style="font-size:0.75rem; color:#8b949e; border-bottom:1px solid #30363d; margin-bottom:5px; padding-top:10px;">MANUFACTURED DRONES</div>`;
+                        html += `<div style="padding:10px; color:#8b949e; font-style:italic;">No drones in storage.</div>`;
+                    }
+
+                    // 3. Accessories (Assume they count to Silo/Material Storage)
                     if (typeof ACCESSORIES !== 'undefined') {
+                        let hasAcc = false;
+                        let accHtml = '';
                         Object.keys(ACCESSORIES).forEach(key => {
                             const qty = this.res[key] || 0;
                             const isUnlocked = this.unlockedModules ? this.unlockedModules.includes(key) : false;
 
                             if (isUnlocked || qty > 0) {
-                                totalItems += qty;
+                                hasAcc = true;
+                                if (qty > 0) totalMats += qty; // Add to Silo
                                 const acc = ACCESSORIES[key];
-                                html += `<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #21262d; font-size:0.85rem; color:#79c0ff;">` +
+                                accHtml += `<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #21262d; font-size:0.85rem; color:#79c0ff;">` +
                                     `<span>${acc.name}</span><span style="font-family:monospace; color:white;">${qty}</span></div>`;
                             }
                         });
+                        if (hasAcc) {
+                            html += `<div style="font-size:0.75rem; color:#8b949e; border-bottom:1px solid #30363d; margin-bottom:5px; padding-top:10px;">COMPONENTS</div>`;
+                            html += accHtml;
+                        }
                     }
 
                     list.innerHTML = html;
 
-                    // Update Capacity Display
-                    const capDisp = document.getElementById('mat-storage-disp');
-                    if (capDisp) {
-                        capDisp.innerText = `${totalItems}/${this.maxMats}`;
-                        capDisp.style.color = (totalItems >= this.maxMats) ? '#da3633' : 'white';
+                    // Update Capacity Displays
+
+                    // 1. Warehouse (Drones)
+                    const storeDisp = document.getElementById('storage-disp');
+                    if (storeDisp) {
+                        storeDisp.innerText = `${totalDrones}/${this.maxStorage}`;
+                        storeDisp.style.color = (totalDrones >= this.maxStorage) ? '#da3633' : 'white';
                     }
+
+                    // 2. Silo (Materials + Components)
+                    const matDisp = document.getElementById('mat-storage-disp');
+                    if (matDisp) {
+                        matDisp.innerText = `${totalMats}/${this.maxMats}`;
+                        matDisp.style.color = (totalMats >= this.maxMats) ? '#da3633' : 'white';
+                    }
+
                 } catch (e) {
                     console.error("Error rendering inventory:", e);
                 }
@@ -2523,6 +3613,8 @@
                 if (type === 'silo') { cost = 2000; dur = 20; }
                 else if (type === 'warehouse') { cost = 2500; dur = 20; }
                 else if (type === 'factory') { cost = 10000; dur = 60; }
+
+                if (this.debugInstantWait) dur = 1; // Instant
 
                 if (this.cash >= cost) {
                     this.cash -= cost;
@@ -2557,10 +3649,18 @@
                 const acc1 = document.getElementById('select-accessory').value;
 
                 // Get Acc2 if available
+                // Get Acc2 if available
                 let acc2 = 'none';
                 const acc2Select = document.getElementById('select-accessory-2');
-                if (acc2Select && acc2Select.offsetParent !== null) { // Visible check
-                    acc2 = acc2Select.value;
+                const slot2Container = document.getElementById('slot-2-container');
+
+                // Enable Slot 2 for Standard/Heavy Frames (Lvl 5+)
+                if (frm >= 5) {
+                    if (slot2Container) slot2Container.style.display = 'block';
+                    if (acc2Select) acc2 = acc2Select.value;
+                } else {
+                    if (slot2Container) slot2Container.style.display = 'none';
+                    if (acc2Select) { acc2Select.value = 'none'; acc2 = 'none'; }
                 }
 
                 document.getElementById('val-eng').innerText = eng;
@@ -2568,10 +3668,11 @@
                 document.getElementById('val-frame').innerText = frm;
                 document.getElementById('val-ai').innerText = ai;
 
-                let rMetal = 1 + Math.floor(bat * 0.5);
+                let rMetal = 1 + Math.floor(frm * 0.2); // Reduced metal dependency on battery slider
                 let rPoly = 1 + Math.floor(frm * 0.5);
                 let rMotor = 1 + Math.floor(eng * 0.3);
                 let rChip = ai > 0 ? ai : 0;
+                let rBattery = 1 + Math.floor(bat * 0.4);
 
                 let accWeight = 0; let accPower = 0; let accCost = 0;
                 let reqList = [];
@@ -2599,16 +3700,17 @@
                 let stealth = Math.max(0, Math.floor((ai * 3) - (eng * 0.5)));
                 let life = 100 + (frm * 20) - (eng * 5);
 
-                const partCost = (rMetal * 15) + (rPoly * 40) + (rMotor * 120) + (rChip * 600);
+                const partCost = (rMetal * 15) + (rPoly * 40) + (rMotor * 120) + (rChip * 600) + (rBattery * 80);
                 const cost = partCost + 100 + accCost;
 
                 this.design = {
                     speed, range, load, reliability, weight, stealth, life, cost,
                     acc: acc1, acc2: acc2,
-                    req: { metal: rMetal, poly: rPoly, motor: rMotor, chip: rChip, specials: reqList }
+                    req: { metal: rMetal, poly: rPoly, motor: rMotor, chip: rChip, battery: rBattery, specials: reqList }
                 };
                 this.updateDesignUI();
                 this.updateBuildPreview();
+                this.renderDroneVisual();
             }
 
             updateBuildPreview() {
@@ -2635,6 +3737,7 @@
                 else if (this.res.poly < r.poly * qty) { valid = false; err = "POLY"; }
                 else if (this.res.motor < r.motor * qty) { valid = false; err = "MOTOR"; }
                 else if (this.res.chip < r.chip * qty) { valid = false; err = "CHIP"; }
+                else if (this.res.battery < r.battery * qty) { valid = false; err = "BATTERY"; }
                 else if (missingPart) { valid = false; err = "PART"; }
                 else if (this.cash < this.design.cost * qty * 0.2) { valid = false; err = "CASH"; }
                 btn.disabled = !valid;
@@ -2648,6 +3751,7 @@
                 const r = this.design.req;
                 this.res.metal -= r.metal * qty; this.res.poly -= r.poly * qty;
                 this.res.motor -= r.motor * qty; this.res.chip -= r.chip * qty;
+                this.res.battery -= r.battery * qty;
                 if (r.specials && r.specials.length > 0) {
                     r.specials.forEach(s => {
                         this.res[s] -= qty;
@@ -2657,7 +3761,9 @@
                 }
                 this.cash -= this.design.cost * qty * 0.2;
 
-                const dur = Math.max(200, 1250 * qty * Math.pow(0.85, this.factoryLevel - 1));
+                let dur = Math.max(200, 1250 * qty * Math.pow(0.85, this.factoryLevel - 1));
+                if (this.debugInstantWait) dur = 10; // Instant ms
+
                 const name = document.getElementById('model-name-input').value;
                 this.buildJob = { name, qty, stats: { ...this.design }, startTime: Date.now(), duration: dur / 1000 };
 
@@ -2692,7 +3798,47 @@
                 this.savedDesigns.push(bp);
                 this.updateSavedListUI(); this.renderBlueprints();
                 this.log(`Blueprint saved: ${name}`, "info");
+                this.announceModel(bp); // Social Feed Announcement
             }
+
+            announceModel(bp) {
+                // Find top 2 stats
+                const stats = [
+                    { name: 'Speed', val: bp.stats.speed },
+                    { name: 'Range', val: bp.stats.range },
+                    { name: 'Stealth', val: bp.stats.stealth },
+                    { name: 'Reliability', val: bp.stats.reliability },
+                    { name: 'Payload', val: bp.stats.load }
+                ];
+                // Sort descending
+                stats.sort((a, b) => b.val - a.val);
+                const top1 = stats[0];
+                const top2 = stats[1];
+
+                const company = document.getElementById('company-name-input').value || "Our Company";
+                const companyHandle = "@" + company.replace(/\s+/g, '') + "Official";
+
+                const msg = `Introducing the ${bp.name}! 🚀 redefining the market with exceptional ${top1.name} and ${top2.name}. #${company.replace(/\s+/g, '')} #Innovation`;
+
+                // Add to feed
+                this.feedHistory.unshift({
+                    title: "New Model Launch",
+                    type: "tweet",
+                    desc: `${companyHandle}: ${msg}`,
+                    time: "Just Now"
+                });
+
+                // Trigger Event popup if needed or just silent update? 
+                // The current system renders feed in Main Loop or updateUI?
+                // Looking at renderFeed logic (if it exists) or updateUI.
+                // Assuming updateUI handles it or it appears in list.
+                // Let's force an update.
+                this.updateUI();
+
+                // Also trigger a "toast" or log
+                this.log("PR Campaign launched for " + bp.name, "success");
+            }
+
             loadDesign(i) {
                 if (i === "") return;
                 const bp = this.savedDesigns[i];
@@ -2728,6 +3874,130 @@
                 });
             }
 
+
+
+            renderDroneVisual() {
+                const container = document.getElementById('drone-visual-container');
+                if (!container) return;
+                container.innerHTML = '';
+
+                const eng = parseInt(document.getElementById('slider-engine').value) || 1;
+                const bat = parseInt(document.getElementById('slider-battery').value) || 1;
+                const frm = parseInt(document.getElementById('slider-frame').value) || 1;
+                const acc1 = document.getElementById('select-accessory').value;
+                const acc2Select = document.getElementById('select-accessory-2');
+                const acc2 = (acc2Select && acc2Select.offsetParent !== null) ? acc2Select.value : 'none';
+
+                // Motors Logic
+                let numMotors = 1;
+                if (eng >= 3) numMotors = 2;
+                if (eng >= 5) numMotors = 3;
+                if (eng >= 7) numMotors = 4;
+                if (eng >= 9) numMotors = 8;
+
+                // Frame Logic
+                let armClass = 'drone-arm';
+                if (frm >= 5) armClass += ' reinforced';
+                if (frm >= 8) armClass += ' heavy';
+
+                // Body
+                const body = document.createElement('div');
+                body.className = 'drone-body';
+
+                // Apply Frame Class
+                if (frm <= 4) body.classList.add('light');
+                else if (frm <= 7) body.classList.add('std');
+                else body.classList.add('heavy'); // 8-10
+
+                container.appendChild(body);
+
+                // Battery Visuals (Cells on body)
+                let numCells = 0;
+                if (bat >= 4) numCells = 1;
+                if (bat >= 7) numCells = 2;
+                if (bat >= 9) numCells = 3;
+
+                for (let b = 0; b < numCells; b++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'drone-battery-cell';
+                    cell.style.top = `${30 + (b * 20)}%`; // Stack vertically
+                    body.appendChild(cell);
+                }
+
+                // Arms & Props
+                const radius = 45;
+                const baseAngle = (numMotors === 4 || numMotors === 8) ? 45 : 0;
+
+                for (let i = 0; i < numMotors; i++) {
+                    const angle = (360 / numMotors) * i + baseAngle;
+                    const arm = document.createElement('div');
+                    arm.className = armClass;
+                    arm.style.width = `${radius}px`;
+                    arm.style.transform = `translateY(-50%) rotate(${angle}deg)`;
+
+                    const prop = document.createElement('div');
+                    prop.className = 'drone-prop';
+                    prop.style.animationDuration = `${0.05 + Math.random() * 0.1}s`;
+
+                    arm.appendChild(prop);
+                    container.appendChild(arm);
+                }
+
+                // Accessories Logic
+                const renderAcc = (type, slot) => {
+                    const div = document.createElement('div');
+                    div.className = 'drone-acc';
+
+                    // Styling Mapping
+                    if (type === 'camera' || type === 'gimbal') div.classList.add('acc-camera');
+                    else if (type === 'siren' || type === 'jammer') div.classList.add('acc-siren');
+                    else if (type === 'spotlight' || type === 'thermal' || type === 'lidar' || type === 'nightvision') div.classList.add('acc-spotlight');
+                    else if (type === 'claw' || type === 'winch') div.classList.add('acc-claw');
+                    else if (type === 'medkit' || type === 'defib') div.classList.add('acc-medkit');
+                    else if (type === 'raft' || type === 'net') div.classList.add('acc-box');
+                    else if (type === 'solar' || type === 'encrypt') div.classList.add('acc-solar');
+                    else if (type === 'sensor' || type === 'sniffer' || type === 'geiger') div.classList.add('acc-sensor');
+                    else return; // None or unknown
+
+                    // Position
+                    // Slot 1: Front (0 deg relative to body up? No, visual is top-down).
+                    // Let's place Slot 1 at Top (12 o'clock), Slot 2 at Bottom (6 o'clock).
+                    // Container is 140x140. Center is 70,70.
+
+                    // If X-config (4/8 motors), Front is between arms.
+                    // 12 o'clock is Top.
+
+                    if (slot === 1) {
+                        div.style.top = '25%'; // Front
+                        div.style.left = '50%';
+                    } else {
+                        div.style.top = '75%'; // Rear
+                        div.style.left = '50%';
+                    }
+                    container.appendChild(div);
+                };
+
+                if (acc1 && acc1 !== 'none') renderAcc(acc1, 1);
+                if (acc2 && acc2 !== 'none') renderAcc(acc2, 2);
+            }
+
+            syncUnlockUI() {
+                this.unlockedModules.forEach(key => {
+                    const opt1 = document.getElementById(`opt-${key}`);
+                    const opt2 = document.getElementById(`opt2-${key}`);
+                    if (opt1) { opt1.disabled = false; opt1.innerText = opt1.innerText.replace('(Requires Stock)', '').replace('🔒 ', ''); }
+                    if (opt2) { opt2.disabled = false; opt2.innerText = opt2.innerText.replace('(Requires Stock)', '').replace('🔒 ', ''); }
+                });
+            }
+
+
+            // --- Helpers ---
+            formatNumber(num) {
+                if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+                if (num >= 1000) return (num / 1000).toFixed(1) + "k";
+                return Math.floor(num).toLocaleString();
+            }
+
             // --- Contracts ---
             generateContracts() {
                 this.activeContracts = [];
@@ -2741,8 +4011,16 @@
                 let tier = 1;
                 if (this.reputation >= 20) tier = 2;
                 if (this.reputation >= 50) tier = 3;
+                if (this.reputation >= 80) tier = 4; // Tier 4 (Frontier)
 
                 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+                // Helper to get cost of accessories
+                const getAccCost = (accs) => {
+                    if (!accs) return 0;
+                    if (Array.isArray(accs)) return accs.reduce((sum, k) => sum + (ACCESSORIES[k] ? ACCESSORIES[k].price : 0), 0);
+                    return ACCESSORIES[accs] ? ACCESSORIES[accs].price : 0;
+                };
 
                 for (let i = 0; i < count; i++) {
                     const type = types[Math.floor(Math.random() * types.length)];
@@ -2766,35 +4044,41 @@
                     c.req.reliability = 60 + (tier * 10);
                     c.req.stealth = 0;
 
+                    let basePayPerUnit = 1000;
+
                     if (type === 'retail') {
                         title = `${client} Order`; icon = "🛒"; cls = "contract-retail";
                         c.qty = Math.floor(c.qty * 2.0);
                         c.req.reliability = 70 + (tier * 5);
-                        c.pay = c.qty * 500;
+                        basePayPerUnit = 500;
                         if (clientType === 'retail_big') c.reqCert = 'commercial';
                     }
                     else if (type === 'gov') {
                         title = `${client} Sector`; icon = "🏛️"; cls = "contract-gov";
                         c.req.reliability = 85 + (tier * 5);
-                        c.pay = c.qty * 2500;
+                        basePayPerUnit = 2500;
                         let pool = ['spotlight'];
                         if (tier >= 2) pool.push('nightvision', 'sniffer');
-                        if (tier >= 3) pool.push('lidar', 'geiger');
+                        if (tier >= 3) pool.push('lidar', 'geiger', 'sonar');
+                        if (tier >= 4) pool.push('ion', 'drill', 'fusion'); // Frontier
                         if (Math.random() > 0.4) c.req.acc = pick(pool);
                     }
                     else if (type === 'police') {
                         title = `${client} Patrol`; icon = "🚓"; cls = "contract-police";
                         c.req.speed = 100 + (tier * 20);
                         c.reqCert = 'police';
-                        c.pay = c.qty * 1200;
+                        basePayPerUnit = 1200;
 
-                        if (tier === 3 && Math.random() > 0.4) {
+                        if ((tier === 3 || tier === 4) && Math.random() > 0.4) {
                             c.req.acc = ['thermal', 'winch'];
+                            if (Math.random() > 0.5) c.req.acc = ['life_support'];
+                            if (Math.random() > 0.5) c.req.acc = ['extinguisher'];
+                            if (Math.random() > 0.5) c.req.acc = ['parachute'];
                             title = `${client} SAR`;
-                            c.pay = c.qty * 4000;
+                            basePayPerUnit = 4000;
                         } else {
                             let pool = ['siren', 'spotlight'];
-                            if (tier >= 2) pool.push('nightvision', 'defib');
+                            if (tier >= 2) pool.push('nightvision', 'defib', 'life_support', 'extinguisher', 'parachute');
                             if (tier >= 3) pool.push('thermal', 'net');
                             if (Math.random() > 0.3) c.req.acc = pick(pool);
                         }
@@ -2804,17 +4088,21 @@
                         c.req.stealth = 20 + (tier * 10);
                         c.req.range = tier * 100;
                         c.reqCert = 'military';
-                        c.pay = c.qty * 3500;
+                        basePayPerUnit = 3500;
 
                         let pool = ['jammer'];
                         if (tier >= 2) pool.push('nightvision');
+                        if (tier >= 3) pool.push('sonar'); // Navy
 
-                        if (tier === 3 && Math.random() > 0.7) {
+                        if ((tier === 3 || tier === 4) && Math.random() > 0.7) {
                             c.req.acc = ['thermal', 'encrypt'];
-                            c.pay = c.qty * 6000;
+                            if (Math.random() > 0.5) c.req.acc = ['swarm_ai'];
+                            if (tier === 4 && Math.random() > 0.5) c.req.acc = ['ion', 'fusion']; // Space Force
+                            basePayPerUnit = 6000;
                             title += " (ELITE)";
                         } else {
-                            if (tier >= 3) pool.push('thermal', 'encrypt', 'raft');
+                            if (tier >= 3) pool.push('thermal', 'encrypt', 'raft', 'swarm_ai');
+                            if (tier >= 4) pool.push('ion', 'fusion');
                             c.req.acc = pick(pool);
                         }
                     }
@@ -2822,23 +4110,25 @@
                         title = `${client} Route`; icon = "📦"; cls = "contract-logistics";
                         c.req.load = tier * 5;
                         c.reqCert = 'commercial';
-                        c.pay = c.qty * 1000;
+                        basePayPerUnit = 1000;
                         let pool = [];
-                        if (tier >= 2) pool.push('claw');
-                        if (tier >= 3) pool.push('winch', 'magnet');
+                        if (tier >= 2) pool.push('claw', 'payload_release');
+                        if (tier >= 3) pool.push('winch', 'magnet', 'printer');
+                        if (tier >= 4) pool.push('cabin'); // Passenger Lines
                         if (pool.length > 0 && Math.random() > 0.5) c.req.acc = pick(pool);
                     }
                     else if (type === 'media') {
                         title = `${client} Footage`; icon = "🎥"; cls = "contract-media";
                         c.reqCert = 'commercial';
-                        c.pay = c.qty * 1500;
+                        basePayPerUnit = 1500;
                         let pool = ['camera'];
                         if (tier >= 2) pool.push('gimbal');
+                        if (tier >= 4) pool.push('holo_ads'); // Future Media
                         c.req.acc = pick(pool);
                     }
                     else if (type === 'agri') {
                         title = `${client} Survey`; icon = "🌾"; cls = "contract-agri";
-                        c.pay = c.qty * 1400;
+                        basePayPerUnit = 1400;
                         let pool = ['solar'];
                         if (tier >= 2) pool.push('sensor', 'sprayer');
                         if (tier >= 3) pool.push('seeder');
@@ -2846,7 +4136,11 @@
                     }
 
                     c.title = title; c.icon = icon; c.cls = cls; c.flavor = flavor;
-                    if (!c.pay) c.pay = c.qty * 1000;
+
+                    // Final Pay Calculation: (Base + AccCost * 1.5) * Qty
+                    // 1.5x Multiplier on AccCost ensures profit even with expensive items
+                    const accCost = getAccCost(c.req.acc);
+                    c.pay = Math.floor((basePayPerUnit + (accCost * 1.5)) * c.qty);
 
                     this.activeContracts.push(c);
                 }
@@ -2876,7 +4170,9 @@
                     if (c.req.load) reqList.push(`LOAD>${c.req.load}kg`);
                     if (c.req.stl) reqList.push(`STL>${c.req.stl}`);
                     let reqHTML = reqList.map(r => `<div class="req-item">${r}</div>`).join('');
-                    div.innerHTML = `<div class="contract-header"><span class="contract-title"><span class="contract-icon">${c.icon}</span> ${c.title} <span class="contract-tier">T${c.tier}</span></span><span>$${c.pay.toLocaleString()}</span></div><div class="req-grid">${reqHTML}</div><div style="font-size:0.7rem; color:#8b949e; text-align:right;">Qty: ${c.qty}</div>`;
+
+                    // Use formatNumber for pay display
+                    div.innerHTML = `<div class="contract-header"><span class="contract-title"><span class="contract-icon">${c.icon}</span> ${c.title} <span class="contract-tier">T${c.tier}</span></span><span>$${this.formatNumber(c.pay)}</span></div><div class="req-grid">${reqHTML}</div><div style="font-size:0.7rem; color:#8b949e; text-align:right;">Qty: ${c.qty}</div>`;
                     list.appendChild(div);
                 });
             }
@@ -2884,7 +4180,7 @@
             openContractModal(id) {
                 const c = this.activeContracts.find(x => x.id === id); if (!c) return;
                 document.getElementById('modal-title').innerText = `${c.icon} ${c.title}`;
-                document.getElementById('modal-pay').innerText = `$${c.pay.toLocaleString()}`;
+                document.getElementById('modal-pay').innerText = `$${this.formatNumber(c.pay)}`; // Use formatNumber
                 document.getElementById('modal-flavor').innerText = `"${c.flavor}"`;
 
                 let reqText = `Client: ${c.client}<br>Quantity: ${c.qty}<br>`;
@@ -3029,9 +4325,27 @@
                 set('stat-load', d.load.toFixed(1) + "kg"); set('stat-rel', d.reliability + "%");
                 set('stat-weight', d.weight.toFixed(1) + "kg"); set('stat-stealth', d.stealth);
                 set('stat-life', d.life + "h"); set('stat-cost', "$" + Math.floor(d.cost));
-                let reqStr = `M:${d.req.metal} P:${d.req.poly} Mo:${d.req.motor} C:${d.req.chip}`;
+                let reqStr = `M:${d.req.metal} P:${d.req.poly} Mo:${d.req.motor} C:${d.req.chip} B:${d.req.battery}`;
                 if (d.req.special) reqStr += ` + 1x ${ACCESSORIES[d.req.special].name}`;
                 document.getElementById('req-mats-display').innerText = reqStr;
+            }
+
+            updateResourceHeader() {
+                const bar = document.getElementById('resource-bar');
+                if (!bar) return;
+
+                const items = [
+                    { key: 'metal', code: 'ME', icon: '🔩', color: '#8b949e' },
+                    { key: 'poly', code: 'PO', icon: '🕸️', color: '#79c0ff' },
+                    { key: 'motor', code: 'MO', icon: '⚙️', color: '#eac54f' },
+                    { key: 'chip', code: 'CH', icon: '💾', color: '#d2a8ff' },
+                    { key: 'battery', code: 'BA', icon: '🔋', color: '#56d364' }
+                ];
+
+                bar.innerHTML = items.map(i => {
+                    const val = this.res[i.key] || 0;
+                    return `<span class="res-item" style="color:${i.color}"><span style="font-size:0.6rem;">${i.icon}</span> ${i.code} <span style="color:white; font-weight:bold;">${this.formatNumber(val)}</span></span>`; // Use formatNumber
+                }).join('');
             }
 
             updateUI() {
@@ -3044,8 +4358,17 @@
 
                 try {
                     set('month-num', this.month);
-                    set('cash-display', "$" + Math.floor(this.cash).toLocaleString());
+                    set('cash-display', "$" + this.formatNumber(this.cash)); // Use formatNumber
                     set('rep-display', this.reputation);
+
+                    // Mobile UI Stats
+                    if (document.getElementById('mob-month')) {
+                        set('mob-month', this.month);
+                        set('mob-cash', "$" + this.formatNumber(this.cash));
+                        set('mob-rep', this.reputation + " RP");
+                    }
+
+                    this.updateResourceHeader();
 
                     // Unlock Second Accessory Slot Check
                     const slot2 = document.getElementById('slot-2-container');
@@ -3081,21 +4404,6 @@
                 this.renderAccessoryMarket();
                 this.renderAdminTab();
 
-                const list = document.getElementById('inventory-list'); list.innerHTML = '';
-                this.inventory.forEach((b, i) => {
-                    let accIcon = "";
-                    if (b.stats.acc !== 'none') accIcon = "🧩";
-                    const div = document.createElement('div'); div.className = 'inv-item';
-                    div.innerHTML = `
-                        <div style="font-weight:bold; font-size:0.9rem">${accIcon} ${b.name} (x${b.qty})</div>
-                        <table class="spec-table">
-                            <tr><td>Spd:${b.stats.speed.toFixed(0)}</td><td>Acc:${b.stats.acc}</td></tr>
-                            <tr><td>Ld:${b.stats.load.toFixed(0)}</td><td>Rel:${b.stats.reliability}%</td></tr>
-                        </table>
-                        <button class="btn-small" style="width:100%; margin-top:5px; border-color:#da3633; color:#da3633" onclick="game.scrap(${i})">Scrap</button>
-                    `;
-                    list.appendChild(div);
-                });
                 this.updateBuildPreview();
 
                 // Infra buttons state
@@ -3114,6 +4422,7 @@
                 const b = this.inventory[idx]; const r = b.stats.req; const f = 0.5 * b.qty;
                 this.res.metal += Math.floor(r.metal * f); this.res.poly += Math.floor(r.poly * f);
                 this.res.motor += Math.floor(r.motor * f); this.res.chip += Math.floor(r.chip * f);
+                this.res.battery += Math.floor(r.battery * f);
                 if (r.special) {
                     this.res[r.special] = (this.res[r.special] || 0) + b.qty;
                     this.log(`Scrapped drone(s). Materials recycled. Recovered ${b.qty}x ${ACCESSORIES[r.special].name}.`, "success");
@@ -3185,7 +4494,7 @@
                 const container = document.getElementById('feed-content');
                 if (!container) return;
                 container.innerHTML = '';
-                this.feedHistory.forEach(item => {
+                this.feedHistory.forEach((item, index) => {
                     let color = "#fff";
                     let icon = "📰";
                     if (item.type === 'tweet') { color = "#1d9bf0"; icon = "🐦"; }
@@ -3197,6 +4506,8 @@
                     div.style.marginBottom = "10px";
                     div.style.paddingBottom = "10px";
                     div.style.borderBottom = "1px solid #21262d";
+                    div.style.cursor = "pointer";
+                    div.onclick = () => this.openFeedModal(index);
                     div.innerHTML = `
                         <div style="font-size:0.75rem; color:#8b949e; margin-bottom:2px;">${item.time}</div>
                         <div style="font-weight:bold; color:${color}; margin-bottom:2px;">${icon} ${item.title}</div>
@@ -3204,6 +4515,32 @@
                     `;
                     container.appendChild(div);
                 });
+            }
+
+            openFeedModal(i) {
+                const item = this.feedHistory[i];
+                if (!item) return;
+
+                document.getElementById('feed-modal-title').innerText = item.type === 'tweet' ? 'Social Media' : 'News Feed';
+                const fakeLikes = Math.floor(Math.random() * 5000) + 42;
+                const fakeRTs = Math.floor(fakeLikes * (0.1 + Math.random() * 0.4));
+
+                // Assuming desc is formatted as "User: Msg" for tweets
+                let user = item.title;
+                let msg = item.desc;
+                if (item.type === 'tweet' && item.desc.includes(':')) {
+                    const parts = item.desc.split(':');
+                    user = parts[0];
+                    msg = parts.slice(1).join(':');
+                }
+
+                document.getElementById('feed-modal-user').innerText = user;
+                document.getElementById('feed-modal-desc').innerHTML = msg;
+                document.getElementById('feed-modal-time').innerText = item.time;
+                document.getElementById('feed-likes').innerText = fakeLikes.toLocaleString();
+                document.getElementById('feed-retweets').innerText = fakeRTs.toLocaleString();
+
+                document.getElementById('feed-modal').style.display = 'flex';
             }
 
             // --- Infra Upgrades ---
@@ -3214,6 +4551,8 @@
                 else if (type === 'warehouse') { cost = 2500; dur = 20; }
                 else if (type === 'factory') { cost = 10000; dur = 60; }
                 else if (type === 'rd') { cost = 15000; dur = 40; }
+
+                if (this.debugInstantWait) dur = 1;
 
                 if (this.cash >= cost) {
                     this.cash -= cost;
@@ -3266,7 +4605,11 @@
                     activeContracts: this.activeContracts,
                     activeEvents: this.activeEvents,
                     activeMandate: this.activeMandate,
-                    savedDesigns: this.savedDesigns // Added blueprints
+                    savedDesigns: this.savedDesigns,
+                    // New State
+                    rdLevel: this.rdLevel,
+                    loans: this.loans,
+                    feedHistory: this.feedHistory
                 };
 
                 const json = JSON.stringify(data, null, 2);
@@ -3305,18 +4648,43 @@
                 this.reputation = data.reputation || 0;
                 this.month = data.month || 1;
                 this.timer = data.timer || 0; // Fix: Restore intra-month progress
-                this.res = data.res || { metal: 0, poly: 0, motor: 0, chip: 0 };
+
+                // Robust Resource Loading (Handle missing battery in old saves)
+                const defaultRes = { metal: 0, poly: 0, motor: 0, chip: 0, battery: 0 };
+                this.res = { ...defaultRes, ...(data.res || {}) };
+                // Ensure all accessories are present in res keys
+                Object.keys(ACCESSORIES).forEach(k => { if (this.res[k] === undefined) this.res[k] = 0; });
+
                 this.inventory = data.inventory || [];
                 this.unlockedModules = data.unlocks || [];
                 this.certifications = data.certifications || ['civil'];
                 this.chaosMode = data.chaosMode || false;
                 this.factoryLevel = data.factoryLevel || 1;
+                this.rdLevel = data.rdLevel || 1; // New
                 this.maxMats = data.maxMats || 200;
                 this.maxStorage = data.maxStorage || 20;
-                this.employees = data.employees || { silo: 0, warehouse: 0, factory: 0 };
+
+                // Robust Employees Loading
+                const defaultEmp = { silo: 0, warehouse: 0, factory: 0, rd: 0 };
+                this.employees = { ...defaultEmp, ...(data.employees || {}) };
+
                 this.activeResearch = data.activeResearch || null;
                 this.salesHistory = data.salesHistory || {};
                 this.totalSales = data.totalSales || 0;
+                this.loans = data.loans || []; // New
+                this.feedHistory = data.feedHistory || []; // New
+                this.savedDesigns = data.savedDesigns || [];
+                this.activeContracts = data.activeContracts || [];
+                this.activeEvents = data.activeEvents || [];
+                this.activeMandate = data.activeMandate || null;
+
+                // Refresh UI
+                if (this.savedDesigns.length > 0) this.updateSavedListUI();
+                this.updateUI();
+                this.renderTechTree();
+                this.renderBlueprints();
+                this.syncUnlockUI(); // Ensure unlocks are applied visually
+                this.renderFeed(); // Show restored feed
 
                 // Fix: Restore missing state
                 this.design = data.design || {};
