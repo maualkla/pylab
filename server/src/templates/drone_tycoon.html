@@ -2183,50 +2183,50 @@
         // Data
         const ACCESSORIES = {
             // Tier 1 (Starters)
-            camera: { name: "4K Camera", price: 500, weight: 1.5, power: 1 },
-            siren: { name: "Siren", price: 200, weight: 1.0, power: 1 },
-            spotlight: { name: "Spotlight", price: 350, weight: 1.5, power: 2 },
+            camera: { name: "4K Camera", code: "CAM", price: 500, weight: 1.5, power: 1 },
+            siren: { name: "Siren", code: "SRN", price: 200, weight: 1.0, power: 1 },
+            spotlight: { name: "Spotlight", code: "LUM", price: 350, weight: 1.5, power: 2 },
 
             // Tier 2 (Unlockable)
-            sensor: { name: "Ag-Sensor", price: 300, weight: 1.0, power: 0.5 },
-            claw: { name: "Servo Claw", price: 400, weight: 3.0, power: 2 },
-            medkit: { name: "Med-Kit", price: 450, weight: 2.0, power: 0.5 },
-            nightvision: { name: "Night Vision", price: 1200, weight: 1.2, power: 1.5 },
-            magnet: { name: "Heavy Magnet", price: 600, weight: 4.0, power: 3 },
-            defib: { name: "AED Defib", price: 800, weight: 2.5, power: 1 },
-            sniffer: { name: "Gas Sniffer", price: 900, weight: 1.5, power: 1 },
+            sensor: { name: "Ag-Sensor", code: "AGS", price: 300, weight: 1.0, power: 0.5 },
+            claw: { name: "Servo Claw", code: "CLW", price: 400, weight: 3.0, power: 2 },
+            medkit: { name: "Med-Kit", code: "MED", price: 450, weight: 2.0, power: 0.5 },
+            nightvision: { name: "Night Vision", code: "NVS", price: 1200, weight: 1.2, power: 1.5 },
+            magnet: { name: "Heavy Magnet", code: "MAG", price: 600, weight: 4.0, power: 3 },
+            defib: { name: "AED Defib", code: "AED", price: 800, weight: 2.5, power: 1 },
+            sniffer: { name: "Gas Sniffer", code: "GAS", price: 900, weight: 1.5, power: 1 },
 
             // Tier 3 (Advanced)
-            lidar: { name: "LIDAR", price: 1200, weight: 2.5, power: 2 },
-            thermal: { name: "Thermal", price: 2000, weight: 2.0, power: 1.5 },
-            winch: { name: "Tac-Winch", price: 1500, weight: 3.5, power: 2.5 },
-            net: { name: "Net Launcher", price: 1000, weight: 3.0, power: 1.5 },
-            raft: { name: "Life Raft", price: 1800, weight: 5.0, power: 0 },
-            seeder: { name: "Auto-Seeder", price: 1400, weight: 4.0, power: 2 },
-            geiger: { name: "Geiger Counter", price: 2500, weight: 1.5, power: 1.5 },
-            encrypt: { name: "Encryption Mod", price: 5000, weight: 0.5, power: 3 },
+            lidar: { name: "LIDAR", code: "LDR", price: 1200, weight: 2.5, power: 2 },
+            thermal: { name: "Thermal", code: "THM", price: 2000, weight: 2.0, power: 1.5 },
+            winch: { name: "Tac-Winch", code: "WCH", price: 1500, weight: 3.5, power: 2.5 },
+            net: { name: "Net Launcher", code: "NET", price: 1000, weight: 3.0, power: 1.5 },
+            raft: { name: "Life Raft", code: "RFT", price: 1800, weight: 5.0, power: 0 },
+            seeder: { name: "Auto-Seeder", code: "SED", price: 1400, weight: 4.0, power: 2 },
+            geiger: { name: "Geiger Counter", code: "GGR", price: 2500, weight: 1.5, power: 1.5 },
+            encrypt: { name: "Encryption Mod", code: "ENC", price: 5000, weight: 0.5, power: 3 },
 
             // Tier 4 (Sci-Fi / Frontier)
-            holo_ads: { name: "Holo-Projector", price: 8000, weight: 3.0, power: 5 },
-            cabin: { name: "Pax Cabin", price: 12000, weight: 15.0, power: 4 },
-            ion: { name: "Ion Thruster", price: 25000, weight: 8.0, power: 10 },
-            drill: { name: "Asteroid Drill", price: 30000, weight: 20.0, power: 8 },
-            fusion: { name: "Fusion Cell", price: 50000, weight: 5.0, power: -5 }, // Negative power = Generator
+            holo_ads: { name: "Holo-Projector", code: "HLO", price: 8000, weight: 3.0, power: 5 },
+            cabin: { name: "Pax Cabin", code: "PAX", price: 12000, weight: 15.0, power: 4 },
+            ion: { name: "Ion Thruster", code: "ION", price: 25000, weight: 8.0, power: 10 },
+            drill: { name: "Asteroid Drill", code: "DRL", price: 30000, weight: 20.0, power: 8 },
+            fusion: { name: "Fusion Cell", code: "FUS", price: 50000, weight: 5.0, power: -5 }, // Negative power = Generator
 
             // Specialized (Fire/Rescue/Space)
-            extinguisher: { name: "Extinguisher", price: 2000, weight: 5.0, power: 1 },
-            parachute: { name: "Safety Chute", price: 1500, weight: 2.0, power: 0 },
-            sonar: { name: "Sonar Array", price: 4000, weight: 3.0, power: 2 },
-            printer: { name: "3D Printer", price: 6000, weight: 6.0, power: 4 },
-            life_support: { name: "Life Support", price: 8000, weight: 10.0, power: 5 },
-            swarm_ai: { name: "Swarm AI", price: 15000, weight: 1.0, power: 8 },
-            payload_release: { name: "Payload Drop", price: 3000, weight: 2.0, power: 1 },
+            extinguisher: { name: "Extinguisher", code: "EXT", price: 2000, weight: 5.0, power: 1 },
+            parachute: { name: "Safety Chute", code: "CHT", price: 1500, weight: 2.0, power: 0 },
+            sonar: { name: "Sonar Array", code: "SNR", price: 4000, weight: 3.0, power: 2 },
+            printer: { name: "3D Printer", code: "3DP", price: 6000, weight: 6.0, power: 4 },
+            life_support: { name: "Life Support", code: "LSS", price: 8000, weight: 10.0, power: 5 },
+            swarm_ai: { name: "Swarm AI", code: "SWM", price: 15000, weight: 1.0, power: 8 },
+            payload_release: { name: "Payload Drop", code: "PYL", price: 3000, weight: 2.0, power: 1 },
 
             // Legacy / Misc
-            solar: { name: "Solar Array", price: 1500, weight: 4.0, power: -1 },
-            sprayer: { name: "Sprayer", price: 600, weight: 3.5, power: 0.5 },
-            jammer: { name: "Sig-Jammer", price: 2500, weight: 2.5, power: 3 },
-            gimbal: { name: "Gimbal", price: 800, weight: 1.5, power: 1 }
+            solar: { name: "Solar Array", code: "SOL", price: 1500, weight: 4.0, power: -1 },
+            sprayer: { name: "Sprayer", code: "SPR", price: 600, weight: 3.5, power: 0.5 },
+            jammer: { name: "Sig-Jammer", code: "JAM", price: 2500, weight: 2.5, power: 3 },
+            gimbal: { name: "Gimbal", code: "GMB", price: 800, weight: 1.5, power: 1 }
         };
 
         const TECH_DB = [
@@ -2705,7 +2705,7 @@
                     revenue: this.monthlyRevenue,
                     units: this.currentMonthUnits
                 });
-                if (this.monthlyHistory.length > 6) this.monthlyHistory.shift(); // Keep last 6
+                if (this.monthlyHistory.length > 100) this.monthlyHistory.shift(); // Keep last 100 months
 
                 this.monthlyRevenue = 0; // Reset for new month
                 this.currentMonthUnits = 0;
@@ -3485,8 +3485,16 @@
                     header.className = 'accessory-header';
                     header.innerText = "COMPONENTS (UNLOCKED)";
                     container.appendChild(header);
-                    this.unlockedModules.forEach(key => {
+
+                    this.unlockedModules.forEach(moduleId => {
+                        // Fix: Map Tech ID (e.g., 'unlock_spray') to Accessory Key (e.g., 'sprayer')
+                        const tech = TECH_DB.find(t => t.id === moduleId);
+                        if (!tech || !tech.key) return;
+
+                        const key = tech.key;
                         const item = ACCESSORIES[key];
+                        if (!item) return;
+
                         const div = document.createElement('div');
                         div.className = 'btn-market';
                         div.style.flexDirection = 'column';
@@ -3497,7 +3505,10 @@
                         div.innerHTML = `
                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                                 <div>
-                                    <div style="font-weight:bold; color:white;">${item.name}</div>
+                                    <div style="font-weight:bold; color:white;">
+                                        <span style="color:#58a6ff; font-family:var(--font-mono); margin-right:4px;">[${item.code || '???'}]</span>
+                                        ${item.name}
+                                    </div>
                                     <div style="font-size:0.7em; color:#8b949e;">$${item.price} ea</div>
                                 </div>
                                 <div style="font-size:0.75rem; color:#8b949e;">Own: ${owned}</div>
@@ -4609,7 +4620,15 @@
                     // New State
                     rdLevel: this.rdLevel,
                     loans: this.loans,
-                    feedHistory: this.feedHistory
+                    feedHistory: this.feedHistory,
+                    // Fix: Statistics & Market State
+                    passives: this.passives,
+                    monthlyHistory: this.monthlyHistory,
+                    currentPrices: this.currentPrices,
+                    supplierPrices: this.supplierPrices,
+                    supplierStock: this.supplierStock,
+                    lastMonthBill: this.lastMonthBill,
+                    monthlyRevenue: this.monthlyRevenue
                 };
 
                 const json = JSON.stringify(data, null, 2);
@@ -4677,6 +4696,15 @@
                 this.activeContracts = data.activeContracts || [];
                 this.activeEvents = data.activeEvents || [];
                 this.activeMandate = data.activeMandate || null;
+
+                // Fix: Restore Statistics & Market
+                this.passives = data.passives || { battery: 1.0, frame: 0, ai: 0 };
+                this.monthlyHistory = data.monthlyHistory || [];
+                this.currentPrices = data.currentPrices || {};
+                this.supplierPrices = data.supplierPrices || {};
+                this.supplierStock = data.supplierStock || {};
+                this.lastMonthBill = data.lastMonthBill || { salaries: 0, taxes: 0, energy: 0, supplies: 0, loanPayment: 0, total: 0 };
+                this.monthlyRevenue = data.monthlyRevenue || 0;
 
                 // Refresh UI
                 if (this.savedDesigns.length > 0) this.updateSavedListUI();
